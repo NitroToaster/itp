@@ -1,3 +1,11 @@
+---
+name: Feature / Task
+about: Plan and track a feature or task
+title: "[FEATURE] <short summary>"
+labels: enhancement
+assignees: ""
+---
+
 # Issue Title
 
 ## Description of contents
