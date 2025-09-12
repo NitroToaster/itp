@@ -1,5 +1,5 @@
 module gr2536.fxui {
-    requires javafx.graphics;
+    requires transitive javafx.graphics;
     requires javafx.controls;
     requires javafx.fxml;
 
