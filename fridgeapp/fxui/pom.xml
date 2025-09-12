@@ -50,7 +50,7 @@
                 <version>0.0.8</version>
                 
                 <configuration>
-                    <mainClass>gr2536.fxui.FridgeApp</mainClass>
+                    <mainClass>gr2536.fxui/gr2536.fxui.FridgeApp</mainClass>
                 </configuration>
             </plugin>
         </plugins>
