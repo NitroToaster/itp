@@ -1,28 +1,39 @@
 # FridgeApp
 
-## Beskrivelse av appen
-FridgeApp er en appliksjon som lar brukeren holde oversikten over hvilke ingredienser og matvarer de har til en hver tid. Brukeren holder den oppdatert ved å fjerne og legge til matvarer etter hvert som det blir kjøpt inn eller brukt opp. Basert på det brukeren har tilgjengelig skal appliksjonen kunne forslå matretter. Det vil også være mulig å søke opp og blad gjennom oppskrifter. I tillegg skal det være mulig å opprette handlelister som kan legges inn manuelt, eller opprettes fra eksisterende oppskrifter. Når handleturen er gjennomført skal brukeren kunne legge til alle matvarene de handlet enkelt i appen, og på samme måte kan matvarer fjernes dersom man lager en oppskrift. 
+## App Description
+FridgeApp is an application that allows users to keep track of which ingredients and food items they have at all times. Users update it by adding and removing items as they are purchased or used. Based on the available ingredients, the application can suggest recipes.  
 
-## Oversikt over kodelager
+It will also be possible to search for and browse recipes, as well as create shopping lists either manually or based on existing recipes. After shopping, users can easily add all purchased items to the app, and similarly remove ingredients when cooking recipes.
+
+## Project Structure
 
 ### docs
-**docs** mappen inneholder dokuementasjonen som er knyttet til hver innlevering/milestone i prosjektet. Dette inkluderer oversikt over fremgang og ny kode, grafer og diagrammer, og mer. 
+The [**docs**](docs/) folder contains documentation related to each submission/milestone of the project. This includes project plans, progress reports, diagrams, and other relevant documentation.
 
 ### fridgeapp
+The **fridgeapp** folder contains all the source code. The project is divided into multiple modules: `core` and `fxui`.
 
-**fridgeapp** er mappen hvor all koden ligger. Den er delt inn i flere moduler; core og fxui.\
+#### Modules
 
-**fridgy/core** innholder logikken og modellene.\
-**friggy/fxui** innholder JavaFX applikasjonen. \
+##### core
+- **Fridge/core** – Class for creating and managing a fridge.  
+- **FridgeFileManager/core** – Class for saving and reading the fridge contents to/from a file.  
+- **Item/core** – Class representing items in the fridge.  
 
-## Teknologier og avhengigheter
+##### fxui
+- **FridgeApp/fxui** – The JavaFX application providing the user interface.  
+- **FridgeAppController/fxui** – Controller classes for the JavaFX application.  
 
-**Java-versjon:** XX eller nyere\
-**Maven-versjon:** XX eller nyere\
-**JavaFX:** 
+##### More Information
+See [fxui/README.md](fxui/README.md) for details on the user interface and functionality.
 
-## Hvordan kjøre prosjektet
+## Technologies and Dependencies
+- **Java version:** 17 or higher  
+- **Maven version:** 3.8.x or higher  
+- **JavaFX:** 17.0.12  
 
-1. Kjør `mvn clean instal` i rotmappen
-2. Naviger til `fridgeapp/fxui` og kjør `mvn javafx:run`
-
+## How to Run the Project
+```bash
+mvn clean install
+cd fridgeapp/fxui
+mvn javafx:run
