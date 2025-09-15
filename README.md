@@ -25,7 +25,7 @@ The **fridgeapp** folder contains all the source code. The project is divided in
 - **FridgeAppController/fxui** – Controller classes for the JavaFX application.  
 
 ##### More Information
-See [fxui/README.md](fxui/README.md) for details on the user interface and functionality.
+See [fxui/README.md](fridgeapp/fxui/README.md) for details on the user interface and functionality.
 
 ## Technologies and Dependencies
 - **Java version:** 17 or higher  
