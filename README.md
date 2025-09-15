@@ -1,5 +1,5 @@
 # FridgeApp
-
+[Open repository in Eclipse Che](https://che.stud.ntnu.no/#https://git.ntnu.no/IT1901-2025-groups/gr2536)
 ## App Description
 FridgeApp is an application that allows users to keep track of which ingredients and food items they have at all times. Users update it by adding and removing items as they are purchased or used. Based on the available ingredients, the application can suggest recipes.  
 
