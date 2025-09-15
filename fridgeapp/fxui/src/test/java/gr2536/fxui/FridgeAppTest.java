@@ -19,7 +19,16 @@ class FridgeAppTest extends FxuiTestBase {
     void should_load_stage(){
         WaitForAsyncUtils.waitForFxEvents();
 
-        NodeQuery nq = lookup("#itemInput");
+        NodeQuery nq = lookup("#nameField");
+        assertFalse(nq.queryAll().isEmpty());
+
+        nq = lookup("#unitField");
+        assertFalse(nq.queryAll().isEmpty());
+
+        nq = lookup("#quantitySpinner");
+        assertFalse(nq.queryAll().isEmpty());
+
+        nq = lookup("#expirationPicker");
         assertFalse(nq.queryAll().isEmpty());
 
         nq = lookup("#addButton");
@@ -32,6 +41,9 @@ class FridgeAppTest extends FxuiTestBase {
         assertFalse(nq.queryAll().isEmpty());
 
         nq = lookup("#saveButton");
+        assertFalse(nq.queryAll().isEmpty());
+
+        nq = lookup("#fridgeList");
         assertFalse(nq.queryAll().isEmpty());
 
         sleep(1000);
