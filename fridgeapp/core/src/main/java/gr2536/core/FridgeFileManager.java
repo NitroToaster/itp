@@ -7,8 +7,17 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Scanner;
 
+/**
+ * A class to manage reading from and writing to a file for the fridge inventory.
+ */
+
 public class FridgeFileManager {
 
+    /**
+     * Saves the contents of the fridge to a file.
+     * @param fridge
+     * @param filename
+     */
     public void saveFridgeData(Fridge fridge, String filename) {
 
         List<Item> itemsInFridge = fridge.listItems();
@@ -32,6 +41,11 @@ public class FridgeFileManager {
         }
     }
 
+    /**
+     * Reads the contents of the fridge from a file and adds them to the fridge.
+     * @param fridge
+     * @param filename
+     */
     public void readFridgeData(Fridge fridge, String filename) {
         File file = new File(filename);
         try {
@@ -51,6 +65,10 @@ public class FridgeFileManager {
         catch (FileNotFoundException e) {
             e.printStackTrace();}
     }
+
+    /**
+     * A simple demonstration of reading from and writing to a file to test the functionality.
+     */
 
     public static void main(String[] args) {
         Fridge fridge = new Fridge();

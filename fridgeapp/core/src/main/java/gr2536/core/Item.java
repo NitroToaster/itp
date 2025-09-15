@@ -66,6 +66,10 @@ public final class Item {
         return new Item(this.name, newQuantity, this.unit, this.expirationDate);
     }
 
+    /**
+     * Returns a new {@code Item} with the provided expiration date, keeping other fields the same.
+     */
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -77,11 +81,17 @@ public final class Item {
                 && Objects.equals(expirationDate, item.expirationDate);
     }
 
+    /**
+     * Returns a uniqe hash code consistent with an Item object
+     */
     @Override
     public int hashCode() {
         return Objects.hash(name.toLowerCase(Locale.ROOT), quantity, unit.toLowerCase(Locale.ROOT), expirationDate);
     }
 
+    /**
+     * Returns a string representation of the item.
+     */
     @Override
     public String toString() {
         return "Item{" +
