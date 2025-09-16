@@ -24,6 +24,10 @@ public class FridgeApp extends Application{
 
         FXMLLoader loader = new FXMLLoader(getClass().getResource("FridgeApp.fxml"));
         Scene scene = new Scene(loader.load());
+        //Loads the CSS file
+        scene.getStylesheets().add(
+            getClass().getResource("FridgeApp.css").toExternalForm()
+        );
 
         primaryStage.setScene(scene);
         primaryStage.show();
