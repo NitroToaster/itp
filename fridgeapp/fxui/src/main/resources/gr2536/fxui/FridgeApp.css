@@ -1,0 +1,268 @@
+/* =================== Theme =================== */
+.root {
+  -fx-font-size: 13px;
+  -fx-font-family: "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+
+  /* Neutral darks */
+  -bg-900:  #121212;  /* page */
+  -panel-1: #1E1E1E;  /* cards/surfaces */
+  -panel-2: #2A2A2A;  /* inputs/recessed */
+
+  -line:      rgba(255,255,255,0.06);
+  -line-lite: rgba(255,255,255,0.12);
+
+  /* Text */
+  -text:       #EDEFF6;    /* default labels */
+  -muted:      #B8C2CC;
+  -input-text: #D9DEE7;
+
+  /* Accent (teal) */
+  -accent: #2CBACE;
+  -accent-glow: rgba(44,186,206,0.18);
+  -accent-12:   rgba(44,186,206,0.12);
+  -accent-24:   rgba(44,186,206,0.24);
+  -accent-45:   rgba(44,186,206,0.45);
+  -accent-60:   rgba(44,186,206,0.60);
+  -accent-75:   rgba(44,186,206,0.75);
+  -accent-90:   rgba(44,186,206,0.90);
+
+  /* JavaFX hooks */
+  -fx-accent:            -accent;
+  -fx-focus-color:       -accent;
+  -fx-faint-focus-color: -accent-24;
+
+  -row-sep: rgba(255,255,255,0.06);
+}
+
+/* =================== Layout =================== */
+.root, .anchor-pane, .vbox, .hbox { -fx-background-color: -bg-900; }
+
+.panel {
+  -fx-background-color: -panel-1;
+  -fx-background-radius: 10px;
+  -fx-border-color: -line;
+  -fx-border-radius: 10px;
+  -fx-background-insets: 0;
+  -fx-border-insets: 0;
+  -fx-padding: 12px;
+}
+
+/* =================== Inputs =================== */
+.text-field, .date-picker, .spinner {
+  -fx-background-color: -panel-2;
+  -fx-text-fill: -input-text;
+  -fx-prompt-text-fill: -muted;
+  -fx-border-color: -line;
+  -fx-background-radius: 6px;
+  -fx-border-radius: 6px;
+  -fx-padding: 7px 10px;
+  -fx-effect: none;
+}
+.text-field:hover, .date-picker:hover, .spinner:hover { -fx-border-color: -line-lite; }
+.text-field:focused, .date-picker:focused, .spinner:focused {
+  -fx-border-color: -accent;
+  -fx-effect: dropshadow(gaussian, -accent-glow, 8, 0.30, 0, 0);
+}
+
+/* Keep inner text fields neutral when parent is focused */
+.date-picker .text-field:focused,
+.spinner .text-field:focused { -fx-border-color: -line-lite; -fx-effect: none; }
+
+/* DatePicker button */
+.date-picker > .arrow-button {
+  -fx-background-color: transparent;
+  -fx-border-color: transparent;
+  -fx-padding: 0 8px;
+  -fx-background-radius: 6px;
+  -fx-border-radius: 6px;
+}
+.date-picker > .arrow-button .arrow { -fx-background-color: -muted; }
+.date-picker > .arrow-button:hover {
+  -fx-border-color: -line-lite;
+  -fx-background-color: rgba(255,255,255,0.04);
+  -fx-cursor: hand;
+}
+.date-picker > .arrow-button:hover .arrow { -fx-background-color: -text; }
+
+/* Spinner arrows */
+.spinner .increment-arrow-button, .spinner .decrement-arrow-button {
+  -fx-background-color: transparent;
+  -fx-border-color: transparent;
+  -fx-padding: 4px 8px;
+  -fx-background-radius: 6px;
+  -fx-border-radius: 6px;
+}
+.spinner .increment-arrow, .spinner .decrement-arrow { -fx-background-color: -muted; }
+.spinner .increment-arrow-button:hover,
+.spinner .decrement-arrow-button:hover,
+.spinner:focused .increment-arrow-button:hover,
+.spinner:focused .decrement-arrow-button:hover {
+  -fx-border-color: -line-lite;
+  -fx-background-color: rgba(255,255,255,0.04);
+  -fx-cursor: default;
+}
+.spinner .increment-arrow-button:hover .increment-arrow,
+.spinner .decrement-arrow-button:hover .decrement-arrow { -fx-background-color: -text; }
+
+/* =================== Buttons =================== */
+.button.primary {
+  -fx-background-color: transparent;
+  -fx-text-fill: -accent;
+  -fx-border-color: rgba(44,186,206,0.70);
+  -fx-border-radius: 8px;
+  -fx-padding: 8px 14px;
+  -fx-font-weight: 600;
+}
+.button.primary:hover {
+  -fx-background-color: -accent-12;
+  -fx-border-color: -accent-90;
+  -fx-effect: dropshadow(gaussian, rgba(44,186,206,0.25), 12, 0.35, 0, 0);
+  -fx-cursor: hand;
+}
+.button.primary:focused { -fx-effect: dropshadow(gaussian, -accent-glow, 8, 0.30, 0, 0); }
+
+/* Make Add & Remove bold */
+#addButton, #removeButton { -fx-font-weight: bold; }
+
+/* =================== ListView =================== */
+.list-view {
+  -fx-background-color: -panel-1;
+  -fx-background-insets: 0;
+  -fx-background-radius: 10px;
+  -fx-border-color: -line;
+  -fx-border-radius: 10px;
+  -fx-border-insets: 0;
+  -fx-padding: 8px;
+  -fx-control-inner-background: -panel-1;
+}
+.list-view .virtual-flow, .list-view .clipped-container,
+.list-view .sheet, .list-view .placeholder, .list-view .corner { -fx-background-color: transparent; }
+.list-view .placeholder .label { -fx-opacity: 0; -fx-padding: 0; }
+
+.list-cell {
+  -fx-background-color: transparent;
+  -fx-text-fill: -text;
+  -fx-padding: 8px 10px;
+  -fx-border-color: transparent transparent -row-sep transparent;
+  -fx-border-width: 0 0 1px 0;
+}
+.list-cell:filled:hover {
+  -fx-background-color: rgba(88,209,227,0.10);
+  -fx-background-radius: 8px;
+}
+.list-cell:filled:selected,
+.list-cell:filled:selected:hover {
+  -fx-background-color: -accent-24;
+  -fx-text-fill: #F5F7FA;
+  -fx-background-radius: 8px;
+  -fx-background-insets: 0 0 1px 0; 
+  -fx-border-color: transparent transparent -row-sep transparent;
+}
+
+/* =================== DatePicker popup =================== */
+.date-picker-popup {
+  -fx-background-color: -panel-1;
+  -fx-background-radius: 10px;
+  -fx-border-color: -line;
+  -fx-border-radius: 10px;
+  -fx-padding: 8px;
+}
+
+/* Header */
+.date-picker-popup .month-year-pane {
+  -fx-background-color: -panel-2;
+  -fx-background-radius: 8px;
+  -fx-padding: 6px 8px;
+}
+.date-picker-popup .month-year-pane .label,
+.date-picker-popup .month-year-pane .spinner-label,
+.date-picker-popup .month-year-pane .label > .text,
+.date-picker-popup .month-year-pane .spinner-label > .text {
+  -fx-text-fill: -text;
+  -fx-fill: -text;
+  -fx-font-weight: 600;
+}
+
+/* Header arrow buttons */
+.date-picker-popup .month-year-pane .button {
+  -fx-background-color: transparent;
+  -fx-border-color: transparent;
+  -fx-background-insets: 0;
+  -fx-border-insets: 0;
+  -fx-padding: 3px 8px;
+  -fx-background-radius: 6px;
+  -fx-border-radius: 6px;
+  -fx-focus-color: transparent;
+  -fx-faint-focus-color: transparent;
+  -fx-effect: none;
+  -fx-focus-traversable: false;
+}
+.date-picker-popup .month-year-pane .button:hover,
+.date-picker-popup .month-year-pane .button:focused,
+.date-picker-popup .month-year-pane .button:armed {
+  -fx-background-color: rgba(255,255,255,0.05);
+  -fx-border-color: -line-lite;
+  -fx-cursor: default;
+}
+.date-picker-popup .month-year-pane .button .left-arrow,
+.date-picker-popup .month-year-pane .button .right-arrow { -fx-background-color: -muted; }
+.date-picker-popup .month-year-pane .button:hover .left-arrow,
+.date-picker-popup .month-year-pane .button:hover .right-arrow,
+.date-picker-popup .month-year-pane .button:armed .left-arrow,
+.date-picker-popup .month-year-pane .button:armed .right-arrow { -fx-background-color: -text; }
+
+/* Calendar grid */
+.date-picker-popup > .calendar-grid { -fx-background-color: transparent; }
+.date-picker-popup > .calendar-grid > .day-name-cell { -fx-text-fill: -muted; }
+.date-picker-popup > .calendar-grid > .day-cell {
+  -fx-background-color: transparent;
+  -fx-text-fill: -text;
+  -fx-background-radius: 6px;
+  -fx-padding: 6px 0;
+}
+.date-picker-popup > .calendar-grid > .day-cell:hover {
+  -fx-background-color: rgba(88,209,227,0.10);
+  -fx-border-color: -accent-60;
+  -fx-cursor: default;
+}
+.date-picker-popup > .calendar-grid > .day-cell:selected {
+  -fx-background-color: -accent;
+  -fx-text-fill: #0B0E11;
+}
+.date-picker-popup > .calendar-grid > .day-cell:today {
+  -fx-border-color: -accent-90;
+  -fx-border-width: 1px;
+}
+.date-picker-popup > .calendar-grid > .day-cell.previous-month,
+.date-picker-popup > .calendar-grid > .day-cell.next-month {
+  -fx-text-fill: rgba(237,239,246,0.35);
+}
+
+/* =================== Scrollbar =================== */
+.list-view .scroll-bar:vertical { -fx-pref-width: 12px; }
+.scroll-bar { -fx-background-color: transparent; -fx-padding: 2px; }
+.scroll-bar .track {
+  -fx-background-color: -panel-2;
+  -fx-background-insets: 0;
+  -fx-background-radius: 8px;
+  -fx-border-color: -line;
+  -fx-border-radius: 8px;
+}
+.scroll-bar .thumb {
+  -fx-background-color: -accent-45;
+  -fx-background-insets: 2px;
+  -fx-background-radius: 8px;
+}
+.scroll-bar .thumb:hover   { -fx-background-color: -accent-75; }
+.scroll-bar .thumb:pressed { -fx-background-color: -accent; }
+
+.scroll-bar .increment-button, .scroll-bar .decrement-button {
+  -fx-background-color: transparent;
+  -fx-border-color: transparent;
+  -fx-background-insets: 0;
+  -fx-border-insets: 0;
+  -fx-padding: 4px;
+}
+.scroll-bar .increment-arrow, .scroll-bar .decrement-arrow { -fx-background-color: -muted; }
+.scroll-bar .increment-button:hover .increment-arrow,
+.scroll-bar .decrement-button:hover .decrement-arrow { -fx-background-color: -text; }
