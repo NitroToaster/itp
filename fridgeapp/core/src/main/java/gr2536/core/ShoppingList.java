@@ -4,10 +4,9 @@ import java.util.*;
 // import java.util.stream.Collectors;
 import java.util.stream.Collectors;
 
-public class ShoppingList implements ItemList{
+public class ShoppingList implements ItemList {
 
     private final Map<Key, Entry> shoppingListByKey = new HashMap<>();
-
 
     /**
      * Adds an item, grouping by name and storing by expiration date.
@@ -17,12 +16,13 @@ public class ShoppingList implements ItemList{
         Objects.requireNonNull(item, "item");
         Key key = Key.of(item.getName());
         Entry entry = shoppingListByKey.computeIfAbsent(key,
-            k -> new Entry(item.getName().trim()));
+                k -> new Entry(item.getName().trim()));
         entry.quantitiesByExpiration.merge(item.getExpirationDate(), item.getQuantity(), ItemListUtils::clampAdd);
     }
 
     /**
      * Removes a quantity of an item, starting with those that expire soonest.
+     * 
      * @return The remaining quantity of the item.
      */
     public int remove(String name, int quantityToRemove) {
@@ -30,7 +30,8 @@ public class ShoppingList implements ItemList{
             throw new IllegalArgumentException("quantityToRemove must be > 0");
         }
         Entry entry = shoppingListByKey.get(Key.of(name));
-        if (entry == null) return 0;
+        if (entry == null)
+            return 0;
 
         int toRemove = quantityToRemove;
         var it = entry.quantitiesByExpiration.entrySet().iterator();
@@ -57,18 +58,20 @@ public class ShoppingList implements ItemList{
      */
     public int getQuantity(String name) {
         Entry entry = shoppingListByKey.get(Key.of(name));
-        if (entry == null) return 0;
+        if (entry == null)
+            return 0;
         long total = entry.quantitiesByExpiration.values().stream().mapToLong(Integer::intValue).sum();
         return ItemListUtils.clampToIntMax(total);
     }
 
     /**
-     * Returns a sorted, unmodifiable list of all items, with one entry per expiration bucket.
+     * Returns a sorted, unmodifiable list of all items, with one entry per
+     * expiration bucket.
      */
     public List<Item> listItems() {
         return shoppingListByKey.values().stream()
                 .flatMap(entry -> entry.quantitiesByExpiration.entrySet().stream()
-                    .map(bucket -> new Item(entry.displayName, bucket.getValue(), bucket.getKey())))
+                        .map(bucket -> new Item(entry.displayName, bucket.getValue(), bucket.getKey())))
                 .sorted(ItemListUtils.ITEM_ORDER)
                 .collect(Collectors.toUnmodifiableList());
     }
@@ -76,9 +79,10 @@ public class ShoppingList implements ItemList{
     /**
      * Adds all items from shopping list to fridge
      * Removes all items from shopping list
+     * 
      * @param fridge
      */
-    public void addToFridge(Fridge fridge){
+    public void addToFridge(Fridge fridge) {
         List<Item> list = listItems();
         var it = list.iterator();
         while (it.hasNext()) {

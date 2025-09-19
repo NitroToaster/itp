@@ -20,9 +20,9 @@ class ItemListUtils {
         return clampToIntMax((long) a + b);
     }
 
-    public static final Comparator<Item> ITEM_ORDER =
-        Comparator.comparing((Item i) -> i.getName().toLowerCase(Locale.ROOT))
-                  .thenComparing(Item::getExpirationDate, Comparator.nullsLast(Comparator.naturalOrder()));
+    public static final Comparator<Item> ITEM_ORDER = Comparator
+            .comparing((Item i) -> i.getName().toLowerCase(Locale.ROOT))
+            .thenComparing(Item::getExpirationDate, Comparator.nullsLast(Comparator.naturalOrder()));
 }
 
 // Package-private record for grouping items by name
@@ -38,7 +38,7 @@ record Key(String name) {
 // Package-private class for storing item quantities by expiration date
 class Entry {
     final String displayName;
-    
+
     final Map<LocalDate, Integer> quantitiesByExpiration = new TreeMap<>(
             Comparator.nullsLast(Comparator.naturalOrder()));
 

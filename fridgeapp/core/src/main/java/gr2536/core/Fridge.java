@@ -11,7 +11,7 @@ import java.util.stream.Collectors;
  * A non-thread-safe fridge inventory that groups items by name,
  * storing them by expiration date.
  */
-public class Fridge implements ItemList{
+public class Fridge implements ItemList {
 
     private final Map<Key, Entry> inventoryByKey = new HashMap<>();
 
@@ -23,12 +23,13 @@ public class Fridge implements ItemList{
         Objects.requireNonNull(item, "item");
         Key key = Key.of(item.getName());
         Entry entry = inventoryByKey.computeIfAbsent(key,
-            k -> new Entry(item.getName().trim()));
+                k -> new Entry(item.getName().trim()));
         entry.quantitiesByExpiration.merge(item.getExpirationDate(), item.getQuantity(), ItemListUtils::clampAdd);
     }
 
     /**
      * Removes a quantity of an item, starting with those that expire soonest.
+     * 
      * @return The remaining quantity of the item.
      */
     public int remove(String name, int quantityToRemove) {
@@ -36,7 +37,8 @@ public class Fridge implements ItemList{
             throw new IllegalArgumentException("quantityToRemove must be > 0");
         }
         Entry entry = inventoryByKey.get(Key.of(name));
-        if (entry == null) return 0;
+        if (entry == null)
+            return 0;
 
         int toRemove = quantityToRemove;
         var it = entry.quantitiesByExpiration.entrySet().iterator();
@@ -63,18 +65,20 @@ public class Fridge implements ItemList{
      */
     public int getQuantity(String name) {
         Entry entry = inventoryByKey.get(Key.of(name));
-        if (entry == null) return 0;
+        if (entry == null)
+            return 0;
         long total = entry.quantitiesByExpiration.values().stream().mapToLong(Integer::intValue).sum();
         return ItemListUtils.clampToIntMax(total);
     }
 
     /**
-     * Returns a sorted, unmodifiable list of all items, with one entry per expiration bucket.
+     * Returns a sorted, unmodifiable list of all items, with one entry per
+     * expiration bucket.
      */
     public List<Item> listItems() {
         return inventoryByKey.values().stream()
                 .flatMap(entry -> entry.quantitiesByExpiration.entrySet().stream()
-                    .map(bucket -> new Item(entry.displayName, bucket.getValue(), bucket.getKey())))
+                        .map(bucket -> new Item(entry.displayName, bucket.getValue(), bucket.getKey())))
                 .sorted(ItemListUtils.ITEM_ORDER)
                 .collect(Collectors.toUnmodifiableList());
     }
