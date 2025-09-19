@@ -1,0 +1,143 @@
+package gr2536.core;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import java.time.LocalDate;
+import java.util.List;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+public class ShoppingListTest {
+    private Fridge fridge;
+    private ShoppingList sList;
+    private Item item1;
+    private Item item2;
+    private Item item3;
+    private Item item4;
+    private Item item5;
+
+    /**
+     * Creates a fridge for the tests
+     */
+    @BeforeEach
+    public void createFridge() {
+        fridge = new Fridge();
+        sList = new ShoppingList();
+
+        item1 = new Item("Cheese", 1, null);
+        item2 = new Item("Egg", 2, LocalDate.of(2025, 9, 30));
+        item3 = new Item("Fish", 4, LocalDate.of(2025, 10, 3));
+        item4 = new Item("Egg", 1, LocalDate.of(2025, 10, 14));
+        item5 = new Item("Fish", 1, LocalDate.of(2025, 10, 3));
+    }
+
+    /**
+     * Tests the add method
+     */
+    @Test
+    public void addToListTest() {
+        assertTrue(sList.listItems().isEmpty());
+        sList.add(item1);
+
+        assertEquals(List.of(
+                item1),
+                sList.listItems());
+        sList.add(item2);
+
+        assertEquals(List.of(
+                item1,
+                item2),
+                sList.listItems());
+        sList.add(item3);
+
+        assertEquals(List.of(
+                item1,
+                item2,
+                item3),
+                sList.listItems());
+        sList.add(item4);
+
+        assertEquals(List.of(
+                item1,
+                item2,
+                item4,
+                item3),
+                sList.listItems());
+        sList.add(item5);
+
+        assertEquals(List.of(
+                item1,
+                item2,
+                item4,
+                new Item("Fish", 5, LocalDate.of(2025, 10, 3))
+
+        ),
+                sList.listItems());
+    }
+
+    /**
+     * Test the remove metod, and correct handling of illegal argument
+     */
+    @Test
+    public void removeFromListTest() {
+        sList.add(item2);
+
+        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
+                () -> sList.remove("Egg", -1));
+        assertEquals("quantityToRemove must be > 0", ex.getMessage());
+
+        sList.remove("Egg", 1);
+
+        assertEquals(List.of(new Item("Egg", 1, LocalDate.of(2025, 9, 30))), sList.listItems());
+
+        sList.add(item1);
+
+        sList.remove("Egg", 1);
+
+        assertEquals(List.of(
+                new Item("Cheese", 1, null)),
+                sList.listItems());
+    }
+
+    /**
+     * Tests the getQuantity method
+     */
+    @Test
+    public void getQuantityTest() {
+        sList.add(item3);
+
+        assertEquals(4, sList.getQuantity("Fish"));
+
+        sList.add(item5);
+
+        assertEquals(5, sList.getQuantity("Fish"));
+    }
+
+    /**
+     * Tests that the addToFridge method adds all items from the shopping list to
+     * the fridge,
+     * and clears the shopping list
+     */
+    @Test
+    public void addToFridgeTest() {
+        sList.add(item1);
+        sList.add(item2);
+        sList.add(item3);
+        sList.add(item4);
+        sList.add(item5);
+
+        sList.addToFridge(fridge);
+
+        assertTrue(sList.listItems().isEmpty());
+
+        assertEquals(List.of(
+                item1,
+                item2,
+                item4,
+                new Item("Fish", 5, LocalDate.of(2025, 10, 3))),
+                fridge.listItems());
+    }
+}

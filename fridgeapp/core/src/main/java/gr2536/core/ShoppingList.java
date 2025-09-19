@@ -1,28 +1,21 @@
 package gr2536.core;
 
-// import java.time.LocalDate;
 import java.util.*;
+// import java.util.stream.Collectors;
 import java.util.stream.Collectors;
-// import gr2536.core.ItemListUtils;
-// import gr2536.core.Key;
-// import gr2536.core.Entry;
 
-/**
- * A non-thread-safe fridge inventory that groups items by name,
- * storing them by expiration date.
- */
-public class Fridge implements ItemList {
+public class ShoppingList implements ItemList {
 
-    private final Map<Key, Entry> inventoryByKey = new HashMap<>();
+    private final Map<Key, Entry> shoppingListByKey = new HashMap<>();
 
     /**
      * Adds an item, grouping by name and storing by expiration date.
-     * Preserves the first-seen casing of the name.
+     * Preserves the first-seen casing of the name and.
      */
     public void add(Item item) {
         Objects.requireNonNull(item, "item");
         Key key = Key.of(item.getName());
-        Entry entry = inventoryByKey.computeIfAbsent(key,
+        Entry entry = shoppingListByKey.computeIfAbsent(key,
                 k -> new Entry(item.getName().trim()));
         entry.quantitiesByExpiration.merge(item.getExpirationDate(), item.getQuantity(), ItemListUtils::clampAdd);
     }
@@ -36,7 +29,7 @@ public class Fridge implements ItemList {
         if (quantityToRemove <= 0) {
             throw new IllegalArgumentException("quantityToRemove must be > 0");
         }
-        Entry entry = inventoryByKey.get(Key.of(name));
+        Entry entry = shoppingListByKey.get(Key.of(name));
         if (entry == null)
             return 0;
 
@@ -55,7 +48,7 @@ public class Fridge implements ItemList {
 
         long remaining = entry.quantitiesByExpiration.values().stream().mapToLong(Integer::intValue).sum();
         if (remaining == 0) {
-            inventoryByKey.remove(Key.of(name));
+            shoppingListByKey.remove(Key.of(name));
         }
         return ItemListUtils.clampToIntMax(remaining);
     }
@@ -64,7 +57,7 @@ public class Fridge implements ItemList {
      * Gets the total quantity of an item across all its expiration dates.
      */
     public int getQuantity(String name) {
-        Entry entry = inventoryByKey.get(Key.of(name));
+        Entry entry = shoppingListByKey.get(Key.of(name));
         if (entry == null)
             return 0;
         long total = entry.quantitiesByExpiration.values().stream().mapToLong(Integer::intValue).sum();
@@ -76,10 +69,26 @@ public class Fridge implements ItemList {
      * expiration bucket.
      */
     public List<Item> listItems() {
-        return inventoryByKey.values().stream()
+        return shoppingListByKey.values().stream()
                 .flatMap(entry -> entry.quantitiesByExpiration.entrySet().stream()
                         .map(bucket -> new Item(entry.displayName, bucket.getValue(), bucket.getKey())))
                 .sorted(ItemListUtils.ITEM_ORDER)
                 .collect(Collectors.toUnmodifiableList());
+    }
+
+    /**
+     * Adds all items from shopping list to fridge
+     * Removes all items from shopping list
+     * 
+     * @param fridge
+     */
+    public void addToFridge(Fridge fridge) {
+        List<Item> list = listItems();
+        var it = list.iterator();
+        while (it.hasNext()) {
+            Item item = it.next();
+            fridge.add(item);
+        }
+        shoppingListByKey.clear();
     }
 }

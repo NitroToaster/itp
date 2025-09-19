@@ -30,7 +30,6 @@ public class FridgeFileManager {
             for (Item item : itemsInFridge) {
                 writer.write(item.getName()+","+
                         item.getQuantity()+","+
-                        item.getUnit()+","+
                         item.getExpirationDate()+"\n");
             }
             writer.flush();
@@ -55,9 +54,8 @@ public class FridgeFileManager {
                 String[] parts = line.split(",");
                 String name = parts[0];
                 int quantity = Integer.parseInt(parts[1]);
-                String unit = parts[2];
-                LocalDate expirationDate = LocalDate.parse(parts[3]);
-                Item item = new Item(name, quantity, unit, expirationDate);
+                LocalDate expirationDate = LocalDate.parse(parts[2]);
+                Item item = new Item(name, quantity, expirationDate);
                 fridge.add(item);
             }
             scanner.close();
@@ -80,9 +78,9 @@ public class FridgeFileManager {
         System.out.println("Innhold i kjøleskapet ved oppstart:");
         fridge.listItems().forEach(System.out::println);
         
-        Item milk = new Item("milk", 2, "liter", LocalDate.of(2024, 6, 30));
-        Item eggs = new Item("eggs", 12, "pieces", LocalDate.of(2024, 7, 5));
-        Item broccoli = new Item("broccoli", 1, "piece", LocalDate.of(2024, 6, 28));
+        Item milk = new Item("milk", 2, LocalDate.of(2024, 6, 30));
+        Item eggs = new Item("eggs", 12, LocalDate.of(2024, 7, 5));
+        Item broccoli = new Item("broccoli", 1, LocalDate.of(2024, 6, 28));
 
         fridge.add(milk);
         fridge.add(eggs);
