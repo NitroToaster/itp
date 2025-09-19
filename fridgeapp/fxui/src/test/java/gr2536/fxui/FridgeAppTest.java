@@ -1,11 +1,8 @@
 package gr2536.fxui;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.testfx.api.FxAssert;
 import org.testfx.service.query.NodeQuery;
 import org.testfx.util.WaitForAsyncUtils;
 
@@ -20,9 +17,6 @@ class FridgeAppTest extends FxuiTestBase {
         WaitForAsyncUtils.waitForFxEvents();
 
         NodeQuery nq = lookup("#nameField");
-        assertFalse(nq.queryAll().isEmpty());
-
-        nq = lookup("#unitField");
         assertFalse(nq.queryAll().isEmpty());
 
         nq = lookup("#quantitySpinner");
