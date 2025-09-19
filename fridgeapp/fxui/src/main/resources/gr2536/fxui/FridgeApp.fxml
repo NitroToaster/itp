@@ -12,8 +12,8 @@
       <GridPane hgap="8" vgap="6">
         <columnConstraints>
           <ColumnConstraints prefWidth="230" hgrow="ALWAYS"/>
-          <ColumnConstraints prefWidth="190" hgrow="ALWAYS"/>
-          <ColumnConstraints prefWidth="100"/>
+          <ColumnConstraints prefWidth="95" hgrow="ALWAYS"/>
+          <ColumnConstraints prefWidth="180"/>
           <ColumnConstraints prefWidth="230"/>
         </columnConstraints>
         <rowConstraints>
@@ -21,9 +21,8 @@
         </rowConstraints>
         <children>
           <TextField fx:id="nameField"  promptText="Name"              GridPane.columnIndex="0" GridPane.rowIndex="0"/>
-          <TextField fx:id="unitField"  promptText="Unit"              GridPane.columnIndex="1" GridPane.rowIndex="0"/>
-          <Spinner   fx:id="quantitySpinner" editable="false"          GridPane.columnIndex="2" GridPane.rowIndex="0"/>
-          <DatePicker fx:id="expirationPicker" promptText="YYYY-MM-DD" GridPane.columnIndex="3" GridPane.rowIndex="0"/>
+          <Spinner   fx:id="quantitySpinner" editable="true"           GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+          <DatePicker fx:id="expirationPicker" promptText="YYYY-MM-DD" GridPane.columnIndex="2" GridPane.rowIndex="0"/>
         </children>
       </GridPane>
 
