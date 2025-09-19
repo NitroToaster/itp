@@ -14,6 +14,7 @@ public class FridgeApp extends Application{
 
     /**
      * Sets up and displays primary stage.
+     * Loads the FridgeApp.css file to style the UI.
      * 
      * @param primaryStage the main window provided by JavaFX
      * @throws Exception if the FXML or scene creation fails
@@ -24,6 +25,10 @@ public class FridgeApp extends Application{
 
         FXMLLoader loader = new FXMLLoader(getClass().getResource("FridgeApp.fxml"));
         Scene scene = new Scene(loader.load());
+        //Loads the .css file
+        scene.getStylesheets().add(
+            getClass().getResource("FridgeApp.css").toExternalForm()
+        );
 
         primaryStage.setScene(scene);
         primaryStage.show();
