@@ -36,7 +36,7 @@ public class FridgeFileManagerTest {
      */
     @Test
     void testSaveFridgeData() throws IOException {
-        Item milk = new Item("Milk", 2, "Drink", LocalDate.of(2025, 9, 25));
+        Item milk = new Item("Milk", 2, LocalDate.of(2025, 9, 25));
         fridge.add(milk);
         
         Path testFile = tempDir.resolve("test_fridge.txt");
@@ -44,7 +44,7 @@ public class FridgeFileManagerTest {
         
         assertTrue(Files.exists(testFile));
         List<String> lines = Files.readAllLines(testFile);
-        assertEquals("Milk,2,Drink,2025-09-25", lines.get(0));
+        assertEquals("Milk,2,2025-09-25", lines.get(0));
     }
 
     /**
@@ -54,7 +54,7 @@ public class FridgeFileManagerTest {
     @Test
     void testReadFridgeData() throws IOException {
         Path testFile = tempDir.resolve("test_read.txt");
-        String content = "Milk,2,Drink,2025-09-25\n";
+        String content = "Milk,2,2025-09-25\n";
         Files.write(testFile, content.getBytes());
         
         fileManager.readFridgeData(fridge, testFile.toString());
@@ -71,7 +71,7 @@ public class FridgeFileManagerTest {
      */
     @Test
     void testSaveAndReadRoundTrip() throws IOException {
-        Item milk = new Item("Milk", 2, "Drink", LocalDate.of(2025, 9, 25));
+        Item milk = new Item("Milk", 2, LocalDate.of(2025, 9, 25));
         fridge.add(milk);
         
         Path testFile = tempDir.resolve("roundtrip.txt");

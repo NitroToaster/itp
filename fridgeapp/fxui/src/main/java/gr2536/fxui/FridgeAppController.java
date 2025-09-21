@@ -38,11 +38,9 @@ import javafx.stage.Window;
  */
 public class FridgeAppController {
 
-    // Input fields for item, unit, quantity, expiration date.
+    // Input fields for item, quantity, expiration date.
     //* Item name */
     @FXML private TextField nameField;
-    //* Unit type */
-    @FXML private TextField unitField;
     //* Quantity spinner */
     @FXML private Spinner<Integer> quantitySpinner;
     //* Expiration date */
@@ -79,7 +77,7 @@ public class FridgeAppController {
                         setText(null);
                     } else {
                         String date = item.getExpirationDate() == null ? "(no date)" : item.getExpirationDate().toString();
-                        setText(item.getName() + " - " + item.getQuantity() + " " + item.getUnit() + " - exp: " + date);
+                        setText(item.getName() + " - " + item.getQuantity() + " - exp: " + date);
                     }
                 }
             };
@@ -98,11 +96,8 @@ public class FridgeAppController {
             return cell;
         });
 
-
         //Spinner setup
-        if (quantitySpinner.getValueFactory() == null) {
-            quantitySpinner.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(1, Integer.MAX_VALUE, 1));
-        }
+        quantitySpinner.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(1, 99, 1));
 
         // Wire events in code
         addButton.setOnAction(this::onAdd);
@@ -117,14 +112,11 @@ public class FridgeAppController {
         BooleanBinding qtyInvalid = Bindings.createBooleanBinding(
             () -> quantitySpinner.getValue() == null || quantitySpinner.getValue() <= 0,
             quantitySpinner.valueProperty());
-        BooleanBinding unitBlank = Bindings.createBooleanBinding(
-            () -> unitField.getText() == null || unitField.getText().trim().isEmpty(),
-            unitField.textProperty());
         BooleanBinding dateMissing = Bindings.createBooleanBinding(
             () -> expirationPicker.getValue() == null, 
             expirationPicker.valueProperty());
 
-        addButton.disableProperty().bind((nameBlank).or(qtyInvalid).or(unitBlank).or(dateMissing));
+        addButton.disableProperty().bind((nameBlank).or(qtyInvalid).or(dateMissing));
         removeButton.disableProperty().bind(fridgeList.getSelectionModel().selectedItemProperty().isNull());
         saveButton.disableProperty().bind(Bindings.isEmpty(items));
 
@@ -172,15 +164,13 @@ public class FridgeAppController {
 
             String name = nameField.getText().trim();
             int qty = quantitySpinner.getValue();
-            String unit = unitField.getText().trim();
             LocalDate date = expirationPicker.getValue();
 
-            Item item = new Item(name, qty, unit, date);
+            Item item = new Item(name, qty, date);
             fridge.add(item);
             refreshFromModel();
 
             nameField.clear();
-            unitField.clear();
             quantitySpinner.getValueFactory().setValue(1);
             expirationPicker.setValue(null);
 
@@ -200,13 +190,14 @@ public class FridgeAppController {
         Item selected = fridgeList.getSelectionModel().getSelectedItem();
         if (selected == null) return;
 
-        fridge.remove(selected.getName(), selected.getUnit(), selected.getQuantity());
+        fridge.remove(selected.getName(), quantitySpinner.getValue());
+        quantitySpinner.getValueFactory().setValue(1);
         refreshFromModel();
     }
 
     /**
      * Load items from a .txt file in CSV-like format: 
-     * {@code name, qty, unit, YYYY-MM-DD}
+     * {@code name, qty, YYYY-MM-DD}
      * @param e action event
      */
     @FXML
@@ -231,7 +222,7 @@ public class FridgeAppController {
 
     /**
      * Save items to a .txt file in CSV-like format: 
-     * {@code name, qty, unit, YYYY-MM-DD}
+     * {@code name, qty, YYYY-MM-DD}
      * @param e action event
      */
     @FXML

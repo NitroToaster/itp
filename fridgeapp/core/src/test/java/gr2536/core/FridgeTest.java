@@ -24,10 +24,10 @@ public class FridgeTest {
     public void fridgeSetup(){
         fridge = new Fridge();
 
-        item1 = new Item("Milk", 1, "Drink", LocalDate.of(2025, 9, 20));
-        item2 = new Item("Milk", 2, "Drink", LocalDate.of(2025, 9, 20));
-        item3 = new Item("Butter", 2, "Dairy", LocalDate.of(2025, 9, 21));
-        item4 = new Item("Juice", 1, "Drink", LocalDate.of(2025, 9, 23));
+        item1 = new Item("Milk", 1, LocalDate.of(2025, 9, 20));
+        item2 = new Item("Milk", 2, LocalDate.of(2025, 9, 20));
+        item3 = new Item("Butter", 2, LocalDate.of(2025, 9, 21));
+        item4 = new Item("Juice", 1,LocalDate.of(2025, 9, 23));
 
         fridge.add(item1);
         fridge.add(item3);
@@ -39,21 +39,21 @@ public class FridgeTest {
     @Test
     public void addTest(){
         assertEquals(List.of(
-            new Item("Butter", 2, "Dairy", LocalDate.of(2025, 9, 21)),
-            new Item("Milk", 1, "Drink", LocalDate.of(2025, 9, 20))),
+            new Item("Butter", 2, LocalDate.of(2025, 9, 21)),
+            new Item("Milk", 1, LocalDate.of(2025, 9, 20))),
             fridge.listItems());
         fridge.add(item2);
         
         assertEquals( List.of(
-            new Item("Butter", 2, "Dairy", LocalDate.of(2025, 9, 21)),
-            new Item("Milk", 3, "Drink", LocalDate.of(2025, 9, 20))),
+            new Item("Butter", 2, LocalDate.of(2025, 9, 21)),
+            new Item("Milk", 3, LocalDate.of(2025, 9, 20))),
             fridge.listItems());
         fridge.add(item4);
 
         assertEquals(List.of(
-            new Item("Butter", 2, "Dairy", LocalDate.of(2025, 9, 21)),
-            new Item("Juice", 1, "Drink", LocalDate.of(2025, 9, 23)), 
-            new Item("Milk", 3, "Drink", LocalDate.of(2025, 9, 20))),
+            new Item("Butter", 2, LocalDate.of(2025, 9, 21)),
+            new Item("Juice", 1, LocalDate.of(2025, 9, 23)), 
+            new Item("Milk", 3, LocalDate.of(2025, 9, 20))),
             fridge.listItems());
     }
 
@@ -63,20 +63,20 @@ public class FridgeTest {
     @Test
     public void removeTest(){
         IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, 
-        () -> fridge.remove("Milk", "Drink", -1));
+        () -> fridge.remove("Milk", -1));
         assertEquals("quantityToRemove must be > 0", ex.getMessage());
 
-        fridge.remove("Milk", "Drink", 1);
+        fridge.remove("Milk", 1);
 
-        assertEquals(List.of(new Item("Butter", 2, "Dairy", LocalDate.of(2025, 9, 21))), fridge.listItems());
+        assertEquals(List.of(new Item("Butter", 2, LocalDate.of(2025, 9, 21))), fridge.listItems());
 
         fridge.add(item2);
 
-        fridge.remove("Milk", "Drink", 1);
+        fridge.remove("Milk", 1);
 
         assertEquals(List.of(
-            new Item("Butter", 2, "Dairy", LocalDate.of(2025, 9, 21)), 
-            new Item("Milk", 1, "Drink", LocalDate.of(2025, 9, 20))), 
+            new Item("Butter", 2, LocalDate.of(2025, 9, 21)), 
+            new Item("Milk", 1, LocalDate.of(2025, 9, 20))), 
             fridge.listItems());
     }
 
@@ -86,11 +86,11 @@ public class FridgeTest {
      */
     @Test
     public void getQuantityTest(){
-        assertEquals(1, (int) fridge.getQuantity("Milk", "Drink"));
+        assertEquals(1, (int) fridge.getQuantity("Milk"));
 
         fridge.add(item2);
 
-        assertEquals(3, (int) fridge.getQuantity("Milk", "Drink"));
+        assertEquals(3, (int) fridge.getQuantity("Milk"));
     }
         
 
