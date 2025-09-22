@@ -94,4 +94,35 @@ public class FridgeTest {
     }
         
 
+    // ---------------- SEARCH/FILTER TESTS ----------------
+
+    @Test
+    public void searchByNameContainsTest() {
+        List<Item> result = fridge.search(new SearchCriteria("mi", NameMatchMode.CONTAINS, null, null, null, null, true, SearchSort.DEFAULT));
+        assertEquals(List.of(new Item("Milk", 1, LocalDate.of(2025, 9, 20))), result);
+    }
+
+    @Test
+    public void searchByMinQuantityTest() {
+        List<Item> result = fridge.search(new SearchCriteria(null, null, 2, null, null, null, true, null));
+        assertEquals(List.of(new Item("Butter", 2, LocalDate.of(2025, 9, 21))), result);
+    }
+
+    @Test
+    public void searchByExpirationFromTest() {
+        List<Item> result = fridge.search(new SearchCriteria(null, null, null, null, LocalDate.of(2025, 9, 21), null, true, null));
+        assertEquals(List.of(new Item("Butter", 2, LocalDate.of(2025, 9, 21))), result);
+    }
+
+    @Test
+    public void searchSortByExpirationDescTest() {
+        fridge.add(item2);
+        fridge.add(item4);
+        List<Item> result = fridge.search(new SearchCriteria(null, null, null, null, null, null, true, SearchSort.EXPIRATION_DESC));
+        assertEquals(List.of(
+                new Item("Juice", 1, LocalDate.of(2025, 9, 23)),
+                new Item("Butter", 2, LocalDate.of(2025, 9, 21)),
+                new Item("Milk", 3, LocalDate.of(2025, 9, 20))
+        ), result);
+    }
 }

@@ -140,4 +140,60 @@ public class ShoppingListTest {
                 new Item("Fish", 5, LocalDate.of(2025, 10, 3))),
                 fridge.listItems());
     }
+
+    // ---------------- SEARCH/FILTER TESTS ----------------
+
+    @Test
+    public void searchByNameExactTest() {
+        sList.add(item1);
+        sList.add(item2);
+        sList.add(item3);
+        sList.add(item4);
+        sList.add(item5);
+
+        List<Item> result = sList.search(new SearchCriteria("Egg", NameMatchMode.EXACT, null, null, null, null, true, null));
+        assertEquals(List.of(
+                new Item("Egg", 2, LocalDate.of(2025, 9, 30)),
+                new Item("Egg", 1, LocalDate.of(2025, 10, 14))
+        ), result);
+    }
+
+    @Test
+    public void filterByMinQuantityTest() {
+        sList.add(item1);
+        sList.add(item2);
+        sList.add(item3);
+        sList.add(item4);
+        sList.add(item5);
+
+        List<Item> result = sList.filterByQuantityAtLeast(3);
+        assertEquals(List.of(new Item("Fish", 5, LocalDate.of(2025, 10, 3))), result);
+    }
+
+    @Test
+    public void expirationUntilIncludeUnknownTest() {
+        sList.add(item1);
+        sList.add(item2);
+        sList.add(item3);
+        sList.add(item4);
+        sList.add(item5);
+
+        List<Item> result = sList.search(new SearchCriteria(null, null, null, null, null, LocalDate.of(2025, 9, 30), true, null));
+        assertEquals(List.of(
+                new Item("Cheese", 1, null),
+                new Item("Egg", 2, LocalDate.of(2025, 9, 30))
+        ), result);
+    }
+
+    @Test
+    public void expirationUntilExcludeUnknownTest() {
+        sList.add(item1);
+        sList.add(item2);
+        sList.add(item3);
+        sList.add(item4);
+        sList.add(item5);
+
+        List<Item> result = sList.search(new SearchCriteria(null, null, null, null, null, LocalDate.of(2025, 9, 30), false, null));
+        assertEquals(List.of(new Item("Egg", 2, LocalDate.of(2025, 9, 30))), result);
+    }
 }

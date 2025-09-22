@@ -1,5 +1,6 @@
 package gr2536.core;
 
+import java.time.LocalDate;
 import java.util.*;
 // import java.util.stream.Collectors;
 import java.util.stream.Collectors;
@@ -90,5 +91,41 @@ public class ShoppingList implements ItemList {
             fridge.add(item);
         }
         shoppingListByKey.clear();
+    }
+
+    /**
+     * Searches items in the shopping list using the provided criteria.
+     * When {@code criteria} is null, returns all items sorted by the default order.
+     */
+    public List<Item> search(SearchCriteria criteria) {
+        SearchCriteria c = (criteria == null) ? SearchCriteria.of() : criteria;
+        return listItems().stream()
+                .filter(ItemFilters.predicate(c))
+                .sorted(ItemFilters.comparator(c))
+                .collect(Collectors.toUnmodifiableList());
+    }
+
+    public List<Item> filterByQuantityAtLeast(int min) {
+        if (min < 0) {
+            throw new IllegalArgumentException("min must be >= 0");
+        }
+        return search(new SearchCriteria(null, NameMatchMode.CONTAINS, Integer.valueOf(min), null, null, null, true, SearchSort.DEFAULT));
+    }
+
+    public List<Item> filterByQuantityAtMost(int max) {
+        if (max < 0) {
+            throw new IllegalArgumentException("max must be >= 0");
+        }
+        return search(new SearchCriteria(null, NameMatchMode.CONTAINS, null, Integer.valueOf(max), null, null, true, SearchSort.DEFAULT));
+    }
+
+    public List<Item> filterByExpirationFrom(LocalDate from) {
+        Objects.requireNonNull(from, "from");
+        return search(new SearchCriteria(null, NameMatchMode.CONTAINS, null, null, from, null, true, SearchSort.DEFAULT));
+    }
+
+    public List<Item> filterByExpirationUntil(LocalDate until) {
+        Objects.requireNonNull(until, "until");
+        return search(new SearchCriteria(null, NameMatchMode.CONTAINS, null, null, null, until, true, SearchSort.DEFAULT));
     }
 }
