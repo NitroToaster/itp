@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<AnchorPane fx:id="root" prefWidth="760" prefHeight="480" xmlns="http://javafx.com/javafx/17.0.2" xmlns:fx="http://javafx.com/fxml/1" fx:controller="gr2536.fxui.ShoppingListController">
+  <children>
+    <VBox spacing="8" styleClass="panel" AnchorPane.topAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.bottomAnchor="0">
+      <padding><Insets top="12" right="12" bottom="12" left="12"/></padding>
+
+      <GridPane hgap="8" vgap="6">
+        <columnConstraints>
+          <ColumnConstraints prefWidth="400" hgrow="ALWAYS"/>
+          <ColumnConstraints prefWidth="150" hgrow="ALWAYS"/>
+          <ColumnConstraints prefWidth="200"/>
+        </columnConstraints>
+        <rowConstraints>
+          <RowConstraints vgrow="NEVER"/>
+        </rowConstraints>
+        <children>
+          <TextField fx:id="itemField" promptText="Item name" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+          <Spinner fx:id="quantitySpinner" editable="true" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+        </children>
+      </GridPane>
+
+      <HBox spacing="8" alignment="CENTER_LEFT">
+        <HBox spacing="8">
+          <Button fx:id="addItemButton" text="Add Item" styleClass="primary"/>
+          <Button fx:id="removeItemButton" text="Remove Item" styleClass="primary"/>
+        </HBox>
+        <Region HBox.hgrow="ALWAYS"/>
+        <HBox spacing="8" alignment="CENTER_RIGHT">
+          <Button fx:id="backToFridgeButton" text="Back to Fridge" styleClass="primary"/>
+          <Button fx:id="addAllToInventoryButton" text="Add All to Inventory" styleClass="primary"/>
+          <Button fx:id="removeAllButton" text="Remove All" styleClass="primary"/>
+        </HBox>
+      </HBox>
+
+      <ListView fx:id="shoppingList" VBox.vgrow="ALWAYS"/>
+    </VBox>
+  </children>
+</AnchorPane>

@@ -12,7 +12,10 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.DatePicker;
@@ -23,6 +26,7 @@ import javafx.scene.control.SpinnerValueFactory;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.AnchorPane;
 import javafx.stage.FileChooser;
+import javafx.stage.Stage;
 import javafx.stage.Window;
 
 /**
@@ -48,13 +52,13 @@ public class FridgeAppController {
     //* Anchorpane/Background */
     @FXML private AnchorPane root;
 
-    /** Buttons for add/remove/load/save actions. */
-    @FXML private Button addButton, removeButton, loadButton, saveButton;
+    /** Buttons for add/remove/load/save/ShoppingList actions. */
+    @FXML private Button addButton, removeButton, loadButton, saveButton, shoppingListButton;
     /** List of items currently in the fridge. */
     @FXML private ListView<Item> fridgeList;
 
     //* Domain model & Persistence */
-    private Fridge fridge = new Fridge();
+    
     private final FridgeFileManager ffm = new FridgeFileManager();
 
     /** ListView */
@@ -104,6 +108,7 @@ public class FridgeAppController {
         removeButton.setOnAction(this::onRemove);
         loadButton.setOnAction(this::onLoad);
         saveButton.setOnAction(this::onSave);
+        shoppingListButton.setOnAction(this::onNavigateToShoppingList);
 
         //Button enable/disable
         BooleanBinding nameBlank = Bindings.createBooleanBinding(
@@ -167,7 +172,7 @@ public class FridgeAppController {
             LocalDate date = expirationPicker.getValue();
 
             Item item = new Item(name, qty, date);
-            fridge.add(item);
+            getFridge().add(item);
             refreshFromModel();
 
             nameField.clear();
@@ -190,7 +195,7 @@ public class FridgeAppController {
         Item selected = fridgeList.getSelectionModel().getSelectedItem();
         if (selected == null) return;
 
-        fridge.remove(selected.getName(), quantitySpinner.getValue());
+        getFridge().remove(selected.getName(), quantitySpinner.getValue());
         quantitySpinner.getValueFactory().setValue(1);
         refreshFromModel();
     }
@@ -212,7 +217,7 @@ public class FridgeAppController {
             try {
                 Fridge newFridge = new Fridge();
                 ffm.readFridgeData(newFridge, f.getAbsolutePath());
-                this.fridge = newFridge;
+                FridgeService.setFridge(newFridge);
                 refreshFromModel();
             } catch (Exception exception) {
                 showError("Could not read file.", exception);
@@ -235,16 +240,38 @@ public class FridgeAppController {
 
         if (f != null) {
             try {
-                ffm.saveFridgeData(fridge, f.getAbsolutePath());
+                ffm.saveFridgeData(getFridge(), f.getAbsolutePath());
             } catch (Exception exception) {
                 showError("Could not save file.", exception);
             }
         }
     }
 
+    /**
+     * Navigate to the Shopping List interface.
+     * @param e action event
+     */
+    @FXML
+    private void onNavigateToShoppingList(ActionEvent e) {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/gr2536/fxui/ShoppingList.fxml"));
+            Parent shoppingRoot = loader.load();
+            
+            Scene shoppingScene = new Scene(shoppingRoot);
+            shoppingScene.getStylesheets().add(getClass().getResource("/gr2536/fxui/ShoppingList.css").toExternalForm());
+            
+            Stage stage = (Stage) shoppingListButton.getScene().getWindow();
+            stage.setScene(shoppingScene);
+            stage.setTitle("Shopping List");
+            
+        } catch (Exception exception) {
+            showError("Navigation Error", new RuntimeException("Could not load Shopping List interface: " + exception.getMessage()));
+        }
+    }
+
     //* Refresh ListView with items from the fridge (domain). */
     private void refreshFromModel(){
-        items.setAll(fridge.listItems());
+        items.setAll(getFridge().listItems());
     }
 
     /**
@@ -290,4 +317,8 @@ public class FridgeAppController {
         alert.setContentText(exception.getMessage());
         alert.showAndWait();
     }
+
+    private Fridge getFridge() {
+        return FridgeService.getFridge();
+}
 }

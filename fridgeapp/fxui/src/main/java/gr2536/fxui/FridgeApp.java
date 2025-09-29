@@ -21,6 +21,7 @@ public class FridgeApp extends Application{
      */
     @Override
     public void start(final Stage primaryStage) throws Exception {
+
         primaryStage.setTitle("FridgeApp");
 
         FXMLLoader loader = new FXMLLoader(getClass().getResource("FridgeApp.fxml"));
