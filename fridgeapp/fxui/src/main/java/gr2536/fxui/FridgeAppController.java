@@ -1,3 +1,5 @@
+/* Used Github CoPilot to refactor the initialize method into several private methods */
+
 package gr2536.fxui;
 
 import java.io.File;
@@ -34,98 +36,126 @@ import javafx.stage.Window;
  * <p>
  * Responsibilities:
  * <ul>
- *   <li>Wire UI controls to domain logic</li>
- *   <li>Render {@link Item} buckets in a ListView</li>
- *   <li>Basic input validation, and enable/disable logic for buttons</li>
- *   <li>Save/Load items via {@link FridgeFileManager}</li>
+ *  <li>Wire UI controls to domain logic</li>
+ *  <li>Render {@link Item} buckets in a ListView</li>
+ *  <li>Basic input validation, and enable/disable logic for buttons</li>
+ *  <li>Save/Load items via {@link FridgeFileManager}</li>
  * </ul>
  */
 public class FridgeAppController {
 
     // Input fields for item, quantity, expiration date.
-    //* Item name */
-    @FXML private TextField nameField;
-    //* Quantity spinner */
-    @FXML private Spinner<Integer> quantitySpinner;
-    //* Expiration date */
-    @FXML private DatePicker expirationPicker;
-    //* Anchorpane/Background */
-    @FXML private AnchorPane root;
+    // * Item name */
+    @FXML
+    private TextField nameField;
+    // * Quantity spinner */
+    @FXML
+    private Spinner<Integer> quantitySpinner;
+    // * Expiration date */
+    @FXML
+    private DatePicker expirationPicker;
+    // * Anchorpane/Background */
+    @FXML
+    private AnchorPane root;
 
     /** Buttons for add/remove/load/save/ShoppingList actions. */
-    @FXML private Button addButton, removeButton, loadButton, saveButton, shoppingListButton;
+    @FXML
+    private Button addButton, removeButton, loadButton, saveButton, shoppingListButton;
     /** List of items currently in the fridge. */
-    @FXML private ListView<Item> fridgeList;
+    @FXML
+    private ListView<Item> fridgeList;
 
-    //* Domain model & Persistence */
+    // * Domain model & Persistence */
     
     private final FridgeFileManager ffm = new FridgeFileManager();
 
-    /** ListView */
+    /** ListView backing data. */
     private final ObservableList<Item> items = FXCollections.observableArrayList();
 
     /**
-     * Initializes the UI: cell factory, spinners, event handlers, and validation bindings.
+     * Initializes the UI: delegates setup to helper methods for clarity and
+     * maintainability.
      * Called by the FXMLLoader after FXML fields are injected.
      */
     @FXML
     private void initialize() {
+        setupListView();
+        setupSpinner();
+        setupButtonEvents();
+        setupButtonBindings();
+        setupBackgroundClickHandling();
+        setupListViewSelectionClearing();
+        refreshFromModel();
+    }
 
-        //ListView setup
+    /** Sets up the ListView cell factory and selection toggling. */
+    private void setupListView() {
         fridgeList.setItems(items);
-        fridgeList.setCellFactory(lv -> {
-            ListCell<Item> cell = new ListCell<>() {
-                @Override protected void updateItem(Item item, boolean empty) {
-                    super.updateItem(item, empty);
-                    if (empty || item == null) {
-                        setText(null);
-                    } else {
-                        String date = item.getExpirationDate() == null ? "(no date)" : item.getExpirationDate().toString();
-                        setText(item.getName() + " - " + item.getQuantity() + " - exp: " + date);
-                    }
+        fridgeList.setCellFactory(lv -> createItemCell());
+    }
+
+    /** Creates a custom ListCell for displaying Item details. */
+    private ListCell<Item> createItemCell() {
+        ListCell<Item> cell = new ListCell<>() {
+            @Override
+            protected void updateItem(Item item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setText(null);
+                } else {
+                    String date = item.getExpirationDate() == null ? "(no date)" : item.getExpirationDate().toString();
+                    setText(item.getName() + " - " + item.getQuantity() + " - exp: " + date);
                 }
-            };
+            }
+        };
+        cell.addEventFilter(javafx.scene.input.MouseEvent.MOUSE_PRESSED, e -> handleCellToggle(cell, e));
+        return cell;
+    }
 
-            // Toggle selection when clicking already-selected cell
-            cell.addEventFilter(javafx.scene.input.MouseEvent.MOUSE_PRESSED, e -> {
-                if (!cell.isEmpty()) {
-                    int index = cell.getIndex();
-                    if (fridgeList.getSelectionModel().getSelectedIndex() == index) {
-                        fridgeList.getSelectionModel().clearSelection();
-                        e.consume();
-                    }
-                }
-            });
+    /** Handles toggling selection when clicking an already-selected cell. */
+    private void handleCellToggle(ListCell<Item> cell, javafx.scene.input.MouseEvent e) {
+        if (!cell.isEmpty()) {
+            int index = cell.getIndex();
+            if (fridgeList.getSelectionModel().getSelectedIndex() == index) {
+                fridgeList.getSelectionModel().clearSelection();
+                e.consume();
+            }
+        }
+    }
 
-            return cell;
-        });
-
-        //Spinner setup
+    /** Sets up the quantity spinner. */
+    private void setupSpinner() {
         quantitySpinner.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(1, 99, 1));
+    }
 
-        // Wire events in code
+    /** Wires button click events to their handlers. */
+    private void setupButtonEvents() {
         addButton.setOnAction(this::onAdd);
         removeButton.setOnAction(this::onRemove);
         loadButton.setOnAction(this::onLoad);
         saveButton.setOnAction(this::onSave);
         shoppingListButton.setOnAction(this::onNavigateToShoppingList);
+    }
 
-        //Button enable/disable
+    /** Sets up enable/disable bindings for buttons based on input validation. */
+    private void setupButtonBindings() {
         BooleanBinding nameBlank = Bindings.createBooleanBinding(
-            () -> nameField.getText() == null || nameField.getText().trim().isEmpty(),
-            nameField.textProperty());
+                () -> nameField.getText() == null || nameField.getText().trim().isEmpty(),
+                nameField.textProperty());
         BooleanBinding qtyInvalid = Bindings.createBooleanBinding(
-            () -> quantitySpinner.getValue() == null || quantitySpinner.getValue() <= 0,
-            quantitySpinner.valueProperty());
+                () -> quantitySpinner.getValue() == null || quantitySpinner.getValue() <= 0,
+                quantitySpinner.valueProperty());
         BooleanBinding dateMissing = Bindings.createBooleanBinding(
-            () -> expirationPicker.getValue() == null, 
-            expirationPicker.valueProperty());
+                () -> expirationPicker.getValue() == null,
+                expirationPicker.valueProperty());
 
         addButton.disableProperty().bind((nameBlank).or(qtyInvalid).or(dateMissing));
         removeButton.disableProperty().bind(fridgeList.getSelectionModel().selectedItemProperty().isNull());
         saveButton.disableProperty().bind(Bindings.isEmpty(items));
+    }
 
-        // Clear focus when clicking background
+    /** Handles background clicks to clear focus and selection. */
+    private void setupBackgroundClickHandling() {
         root.addEventFilter(javafx.scene.input.MouseEvent.MOUSE_PRESSED, e -> {
             javafx.scene.Node hit = e.getPickResult().getIntersectedNode();
             if (!isInsideControl(hit)) {
@@ -133,26 +163,22 @@ public class FridgeAppController {
                 fridgeList.getSelectionModel().clearSelection();
             }
         });
+    }
 
-        // Handle ListView selection clearing
+    /** Handles ListView selection clearing when clicking blank space. */
+    private void setupListViewSelectionClearing() {
         fridgeList.addEventFilter(javafx.scene.input.MouseEvent.MOUSE_PRESSED, e -> {
             Node hit = e.getPickResult().getIntersectedNode();
             ListCell<?> cell = findListCell(hit);
-
-            // Don't clear when using the scrollbar
             boolean hitBar = hasAncestorOfType(hit, javafx.scene.control.ScrollBar.class);
-            if (hitBar) return;
-
-            // Clear if clicked blank space
+            if (hitBar)
+                return;
             if (cell == null || cell.isEmpty()) {
                 fridgeList.getSelectionModel().clearSelection();
                 root.requestFocus();
                 e.consume();
             }
         });
-        
-        //Initial Refresh
-        refreshFromModel();
     }
 
     /**
@@ -164,7 +190,7 @@ public class FridgeAppController {
      */
     @FXML
     private void onAdd(ActionEvent e) {
-        
+
         try {
 
             String name = nameField.getText().trim();
@@ -188,12 +214,14 @@ public class FridgeAppController {
 
     /**
      * Remove the currently selected item(s).
+     * 
      * @param e action event
      */
     @FXML
     private void onRemove(ActionEvent e) {
         Item selected = fridgeList.getSelectionModel().getSelectedItem();
-        if (selected == null) return;
+        if (selected == null)
+            return;
 
         getFridge().remove(selected.getName(), quantitySpinner.getValue());
         quantitySpinner.getValueFactory().setValue(1);
@@ -201,8 +229,9 @@ public class FridgeAppController {
     }
 
     /**
-     * Load items from a .txt file in CSV-like format: 
+     * Load items from a .txt file in CSV-like format:
      * {@code name, qty, YYYY-MM-DD}
+     * 
      * @param e action event
      */
     @FXML
@@ -226,8 +255,9 @@ public class FridgeAppController {
     }
 
     /**
-     * Save items to a .txt file in CSV-like format: 
+     * Save items to a .txt file in CSV-like format:
      * {@code name, qty, YYYY-MM-DD}
+     * 
      * @param e action event
      */
     @FXML
@@ -269,8 +299,8 @@ public class FridgeAppController {
         }
     }
 
-    //* Refresh ListView with items from the fridge (domain). */
-    private void refreshFromModel(){
+    // * Refresh ListView with items from the fridge (domain). */
+    private void refreshFromModel() {
         items.setAll(getFridge().listItems());
     }
 
@@ -279,7 +309,8 @@ public class FridgeAppController {
      */
     private boolean isInsideControl(javafx.scene.Node n) {
         while (n != null) {
-            if (n instanceof javafx.scene.control.Control) return true;
+            if (n instanceof javafx.scene.control.Control)
+                return true;
             n = n.getParent();
         }
         return false;
@@ -290,7 +321,8 @@ public class FridgeAppController {
      */
     private boolean hasAncestorOfType(javafx.scene.Node n, Class<?> type) {
         while (n != null) {
-            if (type.isInstance(n)) return true;
+            if (type.isInstance(n))
+                return true;
             n = n.getParent();
         }
         return false;
@@ -301,7 +333,8 @@ public class FridgeAppController {
      */
     private ListCell<?> findListCell(Node n) {
         while (n != null) {
-            if (n instanceof ListCell) return (ListCell<?>) n;
+            if (n instanceof ListCell)
+                return (ListCell<?>) n;
             n = n.getParent();
         }
         return null;
