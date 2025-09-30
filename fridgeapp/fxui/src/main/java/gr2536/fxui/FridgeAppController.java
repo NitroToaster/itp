@@ -288,7 +288,7 @@ public class FridgeAppController {
             Parent shoppingRoot = loader.load();
             
             Scene shoppingScene = new Scene(shoppingRoot);
-            shoppingScene.getStylesheets().add(getClass().getResource("/gr2536/fxui/ShoppingList.css").toExternalForm());
+            shoppingScene.getStylesheets().add(getClass().getResource("/gr2536/fxui/FridgeApp.css").toExternalForm());
             
             Stage stage = (Stage) shoppingListButton.getScene().getWindow();
             stage.setScene(shoppingScene);
