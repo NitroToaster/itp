@@ -33,6 +33,7 @@
         </HBox>
         <Region HBox.hgrow="ALWAYS"/>
         <HBox spacing="8" alignment="CENTER_RIGHT">
+          <Button fx:id="shoppingListButton" text="Shopping List" styleClass="primary"/>
           <Button fx:id="loadButton" text="Load" styleClass="primary"/>
           <Button fx:id="saveButton" text="Save" styleClass="primary"/>
         </HBox>
