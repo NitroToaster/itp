@@ -77,6 +77,19 @@ public class ShoppingListController {
         public String toString() {
             return name + " - " + quantity;
         }
+
+        @Override
+        public boolean equals(Object obj){
+            if (this == obj) return true;
+            if (!(obj instanceof ShoppingItem)) return false;
+            ShoppingItem other = (ShoppingItem) obj;
+            return name.equals(other.name) && quantity == other.quantity;
+        }
+
+        @Override
+        public int hashCode() {
+            return name.hashCode() * 31 + quantity;
+        }
     }
 
     /**
@@ -88,6 +101,10 @@ public class ShoppingListController {
 
         // ListView setup
         shoppingList.setItems(items);
+
+        //Load persisted items from service class
+        items.setAll(ShoppingListService.getItems());
+
         shoppingList.setCellFactory(lv -> {
             ListCell<ShoppingItem> cell = new ListCell<>() {
                 @Override
@@ -176,6 +193,7 @@ public class ShoppingListController {
 
             ShoppingItem item = new ShoppingItem(name, qty);
             items.add(item);
+            ShoppingListService.addItem(item);
 
             // Clear fields
             itemField.clear();
@@ -196,6 +214,7 @@ public class ShoppingListController {
         ShoppingItem selected = shoppingList.getSelectionModel().getSelectedItem();
         if (selected != null) {
             items.remove(selected);
+            ShoppingListService.removeItem(selected);
         }
     }
 
@@ -223,12 +242,12 @@ public class ShoppingListController {
             alert.setTitle("Added to Inventory");
             alert.setHeaderText("Successfully added items to fridge:");
             alert.setContentText(String.join("\n", addedItems) + 
-                "\n\nDefault expiration: " + defaultExpiration + 
-                "\n(You can edit expiration dates in the Fridge interface)");
+                "\n\nDefault expiration: " + defaultExpiration);
             alert.showAndWait();
 
             // Clear the shopping list after adding to inventory
             items.clear();
+            ShoppingListService.clear();
             
         } catch (Exception exception) {
             showError("Failed to add items to inventory", exception);
@@ -241,6 +260,7 @@ public class ShoppingListController {
     @FXML
     private void onRemoveAll(ActionEvent e) {
         items.clear();
+        ShoppingListService.clear();
     }
 
     /**
