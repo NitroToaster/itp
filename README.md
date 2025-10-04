@@ -34,6 +34,5 @@ See [fxui/README.md](fridgeapp/fxui/README.md) for details on the user interface
 
 ## How to Run the Project
 ```bash
-mvn clean install
-cd fridgeapp/fxui
-mvn javafx:run
+cd fridgeapp
+mvn -f fxui/pom.xml clean javafx:run  

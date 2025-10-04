@@ -1,0 +1,9 @@
+# Teamwork Reflection
+
+Throughout the development of this project, our team has worked collaboratively and efficiently, building on mutual trust and shared responsibility. One of our key strengths has been the ability to take ownership of individual tasks, which has made it easy to delegate work and maintain progress across different parts of the project. Each member has shown accountability, ensuring that their contributions align with the group’s overall goals and deadlines.
+
+Our meetings have maintained a friendly yet professional tone, allowing open discussion while keeping the focus on productivity and problem-solving. This positive atmosphere has contributed to effective collaboration and a good working environment. We have also established a clear and organized workflow on GitHub, using issue boards to track progress, maintaining one branch per task, and writing structured commits and pull requests. This disciplined approach has made version control transparent and efficient for everyone involved.
+
+However, we also recognize areas for improvement. At the beginning of milestone 2, we were overly ambitious, setting timeframes that proved unrealistic given our workload and the demands of other courses. Balancing multiple projects has been challenging, and we have learned that sustainable progress requires realistic planning and mutual accountability. Going forward, we aim to set more achievable goals, communicate workload concerns early, and continue supporting each other to meet deadlines without compromising quality.
+
+Overall, our teamwork has been positive, structured, and growth-oriented, with clear lessons learned for future collaboration.
