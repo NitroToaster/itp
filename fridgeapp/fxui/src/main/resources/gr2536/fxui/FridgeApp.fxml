@@ -4,42 +4,110 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<AnchorPane fx:id="root" prefWidth="760" prefHeight="480" xmlns="http://javafx.com/javafx/17.0.2" xmlns:fx="http://javafx.com/fxml/1" fx:controller="gr2536.fxui.FridgeAppController">
+<AnchorPane fx:id="root" prefWidth="900" prefHeight="650" xmlns="http://javafx.com/javafx/17.0.2" xmlns:fx="http://javafx.com/fxml/1" fx:controller="gr2536.fxui.FridgeAppController">
   <children>
-    <VBox spacing="8" styleClass="panel" AnchorPane.topAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.bottomAnchor="0">
+    <VBox spacing="12" styleClass="panel" AnchorPane.topAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.bottomAnchor="0">
       <padding><Insets top="12" right="12" bottom="12" left="12"/></padding>
 
-      <GridPane hgap="8" vgap="6">
-        <columnConstraints>
-          <ColumnConstraints prefWidth="230" hgrow="ALWAYS"/>
-          <ColumnConstraints prefWidth="95" hgrow="ALWAYS"/>
-          <ColumnConstraints prefWidth="180"/>
-          <ColumnConstraints prefWidth="230"/>
-        </columnConstraints>
-        <rowConstraints>
-          <RowConstraints vgrow="NEVER"/>
-        </rowConstraints>
-        <children>
-          <TextField fx:id="nameField"  promptText="Name"              GridPane.columnIndex="0" GridPane.rowIndex="0"/>
-          <Spinner   fx:id="quantitySpinner" editable="true"           GridPane.columnIndex="1" GridPane.rowIndex="0"/>
-          <DatePicker fx:id="expirationPicker" promptText="YYYY-MM-DD" GridPane.columnIndex="2" GridPane.rowIndex="0"/>
-        </children>
-      </GridPane>
+      <!-- Search Section -->
+      <VBox spacing="6" styleClass="section">
+        <Label text="Search &amp; Sort" styleClass="section-header"/>
+        <GridPane hgap="8" vgap="6">
+          <columnConstraints>
+            <ColumnConstraints prefWidth="250" hgrow="ALWAYS"/>
+            <ColumnConstraints prefWidth="150"/>
+            <ColumnConstraints prefWidth="150"/>
+            <ColumnConstraints prefWidth="80"/>
+            <ColumnConstraints prefWidth="80"/>
+          </columnConstraints>
+          <rowConstraints>
+            <RowConstraints vgrow="NEVER"/>
+          </rowConstraints>
+          <children>
+            <TextField fx:id="searchField" promptText="Search by name..." GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+            <ComboBox fx:id="searchModeCombo" promptText="Match Mode" GridPane.columnIndex="1" GridPane.rowIndex="0" maxWidth="Infinity"/>
+            <ComboBox fx:id="searchSortCombo" promptText="Sort By" GridPane.columnIndex="2" GridPane.rowIndex="0" maxWidth="Infinity"/>
+            <Button fx:id="searchButton" text="Search" styleClass="primary" GridPane.columnIndex="3" GridPane.rowIndex="0" maxWidth="Infinity"/>
+            <Button fx:id="clearSearchButton" text="Clear" GridPane.columnIndex="4" GridPane.rowIndex="0" maxWidth="Infinity"/>
+          </children>
+        </GridPane>
+      </VBox>
 
-      <HBox spacing="8" alignment="CENTER_LEFT">
-        <HBox spacing="8">
-          <Button fx:id="addButton"    text="Add"    styleClass="primary"/>
-          <Button fx:id="removeButton" text="Remove" styleClass="primary"/>
-        </HBox>
-        <Region HBox.hgrow="ALWAYS"/>
-        <HBox spacing="8" alignment="CENTER_RIGHT">
-          <Button fx:id="shoppingListButton" text="Shopping List" styleClass="primary"/>
-          <Button fx:id="loadButton" text="Load" styleClass="primary"/>
-          <Button fx:id="saveButton" text="Save" styleClass="primary"/>
-        </HBox>
-      </HBox>
+      <!-- Filter Section -->
+      <VBox spacing="6" styleClass="section">
+        <Label text="Filters" styleClass="section-header"/>
+        <GridPane hgap="8" vgap="6">
+          <columnConstraints>
+            <ColumnConstraints prefWidth="60" hgrow="NEVER"/>
+            <ColumnConstraints prefWidth="95" hgrow="NEVER"/>
+            <ColumnConstraints prefWidth="60" hgrow="NEVER"/>
+            <ColumnConstraints prefWidth="95" hgrow="NEVER"/>
+            <ColumnConstraints prefWidth="150" hgrow="ALWAYS"/>
+            <ColumnConstraints prefWidth="150" hgrow="ALWAYS"/>
+          </columnConstraints>
+          <rowConstraints>
+            <RowConstraints vgrow="NEVER"/>
+            <RowConstraints vgrow="NEVER"/>
+          </rowConstraints>
+          <children>
+            <Label text="Qty Min:" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+            <Spinner fx:id="filterMinQuantitySpinner" editable="true" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+            <Label text="Max:" GridPane.columnIndex="2" GridPane.rowIndex="0"/>
+            <Spinner fx:id="filterMaxQuantitySpinner" editable="true" GridPane.columnIndex="3" GridPane.rowIndex="0"/>
+            <DatePicker fx:id="filterExpirationFromPicker" promptText="Expiration From" GridPane.columnIndex="4" GridPane.rowIndex="0"/>
+            <DatePicker fx:id="filterExpirationUntilPicker" promptText="Expiration Until" GridPane.columnIndex="5" GridPane.rowIndex="0"/>
+            
+            <CheckBox fx:id="filterIncludeUnknownCheck" text="Include items without expiration date" GridPane.columnIndex="0" GridPane.rowIndex="1" GridPane.columnSpan="4"/>
+            <HBox spacing="8" GridPane.columnIndex="4" GridPane.rowIndex="1" GridPane.columnSpan="2">
+              <Button fx:id="applyFilterButton" text="Apply Filter" styleClass="primary"/>
+              <Button fx:id="clearFilterButton" text="Clear Filter"/>
+            </HBox>
+          </children>
+        </GridPane>
+      </VBox>
 
-      <ListView fx:id="fridgeList" VBox.vgrow="ALWAYS"/>
+      <Separator/>
+
+      <!-- Add Item Section -->
+      <VBox spacing="6" styleClass="section">
+        <Label text="Add Item" styleClass="section-header"/>
+        <GridPane hgap="8" vgap="6">
+          <columnConstraints>
+            <ColumnConstraints prefWidth="250" hgrow="ALWAYS"/>
+            <ColumnConstraints prefWidth="95" hgrow="ALWAYS"/>
+            <ColumnConstraints prefWidth="180"/>
+          </columnConstraints>
+          <rowConstraints>
+            <RowConstraints vgrow="NEVER"/>
+          </rowConstraints>
+          <children>
+            <TextField fx:id="nameField" promptText="Item Name" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+            <Spinner fx:id="quantitySpinner" editable="true" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+            <DatePicker fx:id="expirationPicker" promptText="Expiration Date" GridPane.columnIndex="2" GridPane.rowIndex="0"/>
+          </children>
+        </GridPane>
+
+        <HBox spacing="8" alignment="CENTER_LEFT">
+          <HBox spacing="8">
+            <Button fx:id="addOneButton" text="Add One" styleClass="primary"/>
+            <Button fx:id="addButton" text="Add All" styleClass="primary"/>
+            <Button fx:id="removeOneButton" text="Remove One" styleClass="primary"/>
+            <Button fx:id="removeAllButton" text="Remove All" styleClass="primary"/>
+          </HBox>
+          <Region HBox.hgrow="ALWAYS"/>
+          <HBox spacing="8" alignment="CENTER_RIGHT">
+            <Button fx:id="shoppingListButton" text="Shopping List" styleClass="primary"/>
+            <Button fx:id="loadButton" text="Load" styleClass="primary"/>
+            <Button fx:id="saveButton" text="Save" styleClass="primary"/>
+          </HBox>
+        </HBox>
+      </VBox>
+
+      <!-- Fridge Items List -->
+      <VBox spacing="6" VBox.vgrow="ALWAYS">
+        <Label text="Fridge Items" styleClass="section-header"/>
+        <ListView fx:id="fridgeList" VBox.vgrow="ALWAYS"/>
+      </VBox>
     </VBox>
   </children>
 </AnchorPane>

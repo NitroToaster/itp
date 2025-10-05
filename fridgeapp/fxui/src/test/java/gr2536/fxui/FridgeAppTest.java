@@ -28,7 +28,13 @@ class FridgeAppTest extends FxuiTestBase {
         nq = lookup("#addButton");
         assertFalse(nq.queryAll().isEmpty());
 
-        nq = lookup("#removeButton");
+        nq = lookup("#addOneButton");
+        assertFalse(nq.queryAll().isEmpty());
+
+        nq = lookup("#removeOneButton");
+        assertFalse(nq.queryAll().isEmpty());
+
+        nq = lookup("#removeAllButton");
         assertFalse(nq.queryAll().isEmpty());
 
         nq = lookup("#loadButton");
