@@ -1,12 +1,14 @@
 package gr2536.utils;
 
-import gr2536.core.Fridge;
-import gr2536.core.FridgeFileManager;
+import java.io.File;
+import java.io.IOException;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import java.io.File;
-import java.io.IOException;
+
+import gr2536.core.Fridge;
+import gr2536.core.FridgeFileManager;
 
 public class FridgeJsonFileManager implements FridgeFileManager {
 
