@@ -151,7 +151,13 @@ public class FridgeAppController {
         fridgeList.setCellFactory(lv -> createItemCell());
     }
 
-    /** Creates a custom ListCell for displaying Item details. */
+    /**
+     * Creates a custom {@link ListCell} that shows item details and contextual actions.
+     * <p>Buttons (+/–/Del) appear on hover or selection and delegate to the
+     * controller’s handlers while keeping the row selection consistent.
+     * </p>
+     * @return a cell factory for {@link Item} rows
+     */
     private ListCell<Item> createItemCell() {
     return new ListCell<>() {
 
@@ -176,7 +182,7 @@ public class FridgeAppController {
             actions.opacityProperty().bind(
                 Bindings.when(show).then(1.0).otherwise(0.0)
             );
-            
+
             actions.mouseTransparentProperty().bind(show.not());
 
             addEventFilter(javafx.scene.input.MouseEvent.MOUSE_PRESSED,
@@ -228,13 +234,14 @@ public class FridgeAppController {
     };
     }
 
-    /** Handles toggling selection when clicking an already-selected cell. */
+    /** Handles toggling selection when clicking an already-selected cell,
+     * unless the click originated inside the control
+     * */
     private void handleCellToggle(ListCell<Item> cell, javafx.scene.input.MouseEvent e) {
         if (cell.isEmpty()) return;
 
         javafx.scene.Node target = (javafx.scene.Node) e.getTarget();
         if (isInsideControl(target)) {
-            // Click was on a Button/Control inside the cell → let it through
             return;
         }
 
@@ -463,6 +470,11 @@ public class FridgeAppController {
         }
     }
 
+    /**
+     * Shows the Add Item dialog.
+     *
+     * @return the created {@link Item}, or {@code null} if the dialog was cancelled
+    */
     private Item showAddItemDialog() {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/gr2536/fxui/AddItemDialog.fxml"));
@@ -490,11 +502,11 @@ public class FridgeAppController {
     }
 
     /**
-     * Adds the specified quantity of an item to the fridge.
-     * Clears fields and focuses name field on success.
+     * Opens the Add Item dialog, and adds the resulting item to the fridge.
+     * Afterwards refreshes the list (respecting any active filters).
      * 
-     * @param e ActionEvent from addAll button
-     * @throws IllegalArgumentException if invalid input
+     * @param e from the Add Item button
+     * @see AddItemDialogController
      */
     @FXML
     private void onAdd(ActionEvent e) {
@@ -507,14 +519,10 @@ public class FridgeAppController {
     }
 
     /**
-     * Adds exactly one unit of the specified item to the fridge.
-     * Similar to onAdd but always adds quantity of 1, ignoring spinner value.
-     * Useful for quickly adding single items.
-     * 
-     * @param e ActionEvent from addOne button
-     * @throws IllegalArgumentException if invalid input
+     * Increments the selected item by exactly one and reselects the same bucket.
+     *
+     * @param e Action Event from the plus (+) button
      */
-    @FXML
     private void onAddOne(ActionEvent e) {
         Item selected = fridgeList.getSelectionModel().getSelectedItem();
         if (selected == null) {
@@ -531,10 +539,10 @@ public class FridgeAppController {
     }
 
     /**
-     * Removes exactly one unit of the selected item from the fridge.
-     * Removes from the oldest expiration date first (FIFO).
-     * 
-     * @param e ActionEvent from removeOne button
+     * Decrements the selected item by exactly one (FIFO by expiration date)
+     * and reselects the same bucket.
+     *
+     * @param e Action Event from the minus (-) button
      */
     @FXML
     private void onRemoveOne(ActionEvent e) {
@@ -553,10 +561,9 @@ public class FridgeAppController {
     }
 
     /**
-     * Removes all units of the selected item from the fridge.
-     * Clears the item completely, regardless of expiration dates.
+     * Removes all units of the selected item from the fridge, and refreshes the list
      * 
-     * @param e ActionEvent from removeAll button
+     * @param e Action Event from the delete (del) button
      */
     @FXML
     private void onRemoveAll(ActionEvent e) {
@@ -762,7 +769,12 @@ public class FridgeAppController {
         return FridgeService.getFridge();
     }
 
-    //* Keep selection after onAddOne/onRemoveOne after list is rebuilt*/
+    /**
+     * Reselects and scrolls to the item cell that matches the previous selection
+     * by case-insensitive name and expiration date.
+     *
+     * @param prev the previously selected item (name/date used for matching)
+     */
     private void reselectSameBucket(Item prev) {
     for (int i = 0; i < items.size(); i++) {
         Item it = items.get(i);

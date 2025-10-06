@@ -17,8 +17,13 @@ import javafx.scene.control.TextField;
 
 /**
  * Controller for the “Add Item” dialog.
- * Wires FXML controls, performs lightweight input validation,
- * and exposes a factory method to build an {@link Item}.
+ * <p>
+ * Responsibilities:
+ * <ul>
+ *   <li>Wire injected FXML controls</li>
+ *   <li>Perform lightweight client-side validation</li>
+ *   <li>Expose a factory method to build an immutable {@link Item}</li>
+ * </ul>
  */
 public class AddItemDialogController {
 
@@ -44,8 +49,8 @@ public class AddItemDialogController {
 
 
     /**
-    * Initializes control state, validation styling, and OK-button enablement.
-    * Called automatically by the FXMLLoader after FXML injection.
+    * Initializes control state, validation styling, and OK-button enabling.
+    * Called automatically by the {@code FXMLLoader} after FXML injection.
     */
     @FXML
     private void initialize() {
@@ -69,7 +74,7 @@ public class AddItemDialogController {
      /**
      * Keeps the UI’s validation state in sync with user input.
      * Currently clears any inline error style when the name field becomes non-blank.
-     * TODO (issue #53): replace inline style with a CSS pseudoclass-driven approach.
+     * @implNote See issue #53: replace inline style with a CSS pseudoclass-driven approach.
      */
     private void setupValidation() {
         nameField.textProperty().addListener((obs, old, val) -> {
