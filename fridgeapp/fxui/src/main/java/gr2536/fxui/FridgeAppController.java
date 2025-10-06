@@ -2,11 +2,11 @@
 
 package gr2536.fxui;
 
+import java.io.File;
 import java.time.LocalDate;
 import java.util.List;
 
 import gr2536.core.Fridge;
-import gr2536.core.FridgeFileManager;
 import gr2536.core.Item;
 import gr2536.core.NameMatchMode;
 import gr2536.core.SearchCriteria;
@@ -39,7 +39,12 @@ import javafx.scene.control.TextField;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
+import javafx.stage.FileChooser;
 import javafx.stage.Stage;
+import javafx.stage.Window;
+
+import gr2536.core.FridgeFileManager;
+import gr2536.utils.FridgeJsonFileManager;
 
 /**
  * JavaFX controller for the Fridge UI.
@@ -110,13 +115,13 @@ public class FridgeAppController {
     /** List view displaying items in the fridge. */
     @FXML
     private ListView<Item> fridgeList;
-
-    // ========== Domain model & Persistence ==========
-    /** File manager for persistence. */
-    // private final FridgeFileManager ffm = new FridgeFileManager();
-
     /** ListView backing data. */
     private final ObservableList<Item> items = FXCollections.observableArrayList();
+
+    // Persistence
+    private FridgeFileManager ffm;
+    private final String filename = "fridge.json";
+    private Fridge fridge;
 
     // ========== State management ==========
     /**
@@ -136,6 +141,8 @@ public class FridgeAppController {
      */
     @FXML
     private void initialize() {
+        setupFridge();
+
         setupListView();
         setupSearchControls();
         setupFilterControls();
@@ -143,6 +150,15 @@ public class FridgeAppController {
         setupBackgroundClickHandling();
         setupListViewSelectionClearing();
         refreshFromModel();
+    }
+
+
+    /** Initializes the Fridge domain model and file manager. */
+    private void setupFridge() {
+        ffm = new FridgeJsonFileManager();
+        fridge = ffm.readFridgeData(filename);  
+        fridge.setFileManager(ffm, filename);
+        FridgeService.setFridge(fridge);
     }
 
     /** Sets up the ListView cell factory and selection toggling. */
@@ -411,6 +427,37 @@ public class FridgeAppController {
         refreshFromModel();
     }
 
+    
+    /**
+     * Load items from a .json file.
+     * 
+     * @param e ActionEvent from apply filter button
+     */
+    @FXML
+    private void onLoad(ActionEvent e) {
+    Window window = fridgeList.getScene().getWindow();
+    FileChooser fc = new FileChooser();
+    fc.setTitle("Open fridge file");
+    fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("JSON files", "*.json"));
+    File f = fc.showOpenDialog(window);
+
+    if (f != null) {
+        try {
+            Fridge newFridge = ffm.readFridgeData(f.getAbsolutePath());
+
+            newFridge.setFileManager(ffm, f.getAbsolutePath());
+
+            fridge = newFridge;
+            FridgeService.setFridge(fridge);
+
+            refreshFromModel();
+
+        } catch (Exception exception) {
+            showError("Could not read file.", exception);
+        }
+    }
+    }
+
     /**
      * Applies filter criteria without requiring search text.
      * Useful for filtering by quantity or expiration date ranges.
@@ -451,6 +498,7 @@ public class FridgeAppController {
             showError("Invalid filter criteria", exception);
         }
     }
+    
 
     /**
      * Clears only the filter criteria while preserving search text/mode/sort.
@@ -585,59 +633,6 @@ public class FridgeAppController {
         refreshFromModel();
     }
 
-    // /**
-    //  * Load items from a .txt file in CSV-like format:
-    //  * {@code name, qty, YYYY-MM-DD}
-    //  * 
-    //  * @param e action event
-    //  */
-    // @FXML
-    // private void onLoad(ActionEvent e) {
-    //     Window window = fridgeList.getScene().getWindow();
-    //     FileChooser fc = new FileChooser();
-    //     fc.setTitle("Open fridge file");
-    //     fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("Text files", "*.txt"));
-    //     File f = fc.showOpenDialog(window);
-
-    //     if (f != null) {
-    //         try {
-    //             Fridge newFridge = new Fridge();
-    //             ffm.readFridgeData(newFridge, f.getAbsolutePath());
-    //             FridgeService.setFridge(newFridge);
-                
-    //             // Clear any active filters when loading new data
-    //             currentSearchCriteria = null;
-    //             isFiltered = false;
-    //             refreshFromModel();
-    //         } catch (Exception exception) {
-    //             showError("Could not read file.", exception);
-    //         }
-    //     }
-    // }
-
-    // /**
-    //  * Save items to a .txt file in CSV-like format:
-    //  * {@code name, qty, YYYY-MM-DD}
-    //  * 
-    //  * @param e action event
-    //  */
-    // @FXML
-    // private void onSave(ActionEvent e) {
-    //     Window window = fridgeList.getScene().getWindow();
-    //     FileChooser fc = new FileChooser();
-    //     fc.setTitle("Save fridge file");
-    //     fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("Text files", "*.txt"));
-    //     File f = fc.showSaveDialog(window);
-
-    //     if (f != null) {
-    //         try {
-    //             ffm.saveFridgeData(getFridge(), f.getAbsolutePath());
-    //         } catch (Exception exception) {
-    //             showError("Could not save file.", exception);
-    //         }
-    //     }
-    // }
-
     /**
      * Navigate to the Shopping List interface.
      * @param e action event
@@ -656,7 +651,7 @@ public class FridgeAppController {
             stage.setTitle("Shopping List");
             
         } catch (Exception exception) {
-            showError("Navigation Error", new RuntimeException("Could not load Shopping List interface: " + exception.getMessage()));
+            showException("Navigation Error", new RuntimeException("Could not load Shopping List interface: " + exception.getMessage()));
         }
     }
 

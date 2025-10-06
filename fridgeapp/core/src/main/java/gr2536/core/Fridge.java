@@ -3,9 +3,12 @@ package gr2536.core;
 import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
-// import gr2536.core.ItemListUtils;
-// import gr2536.core.Key;
-// import gr2536.core.Entry;
+//import gr2536.core.ItemListUtils;
+//import gr2536.core.Key;
+//import gr2536.core.Entry;
+
+import com.fasterxml.jackson.annotation.JsonGetter;
+import com.fasterxml.jackson.annotation.JsonSetter;
 
 /**
  * A non-thread-safe fridge inventory that groups items by name,
@@ -14,6 +17,38 @@ import java.util.stream.Collectors;
 public class Fridge implements ItemList {
 
     private final Map<Key, Entry> inventoryByKey = new HashMap<>();
+
+    private FridgeFileManager fileManager;
+    private String filename;
+
+    /**
+     * Creates an empty fridge without persistence.
+     */
+    public Fridge() {
+    }
+
+    /**
+     * Creates a fridge with the specified file manager and filename for
+     * persistence.
+     * 
+     * @param fileManager The file manager to use.
+     * @param filename    The filename to use.
+     */
+    public Fridge(FridgeFileManager fileManager, String filename) {
+        this.fileManager = fileManager;
+        this.filename = filename;
+    }
+
+    /**
+     * Sets the file manager and filename for persistence.
+     * 
+     * @param fileManager The file manager to use.
+     * @param filename    The filename to use.
+     */
+    public void setFileManager(FridgeFileManager fileManager, String filename) {
+        this.fileManager = fileManager;
+        this.filename = filename;
+    }
 
     /**
      * Adds an item, grouping by name and storing by expiration date.
@@ -25,6 +60,14 @@ public class Fridge implements ItemList {
         Entry entry = inventoryByKey.computeIfAbsent(key,
                 k -> new Entry(item.getName().trim()));
         entry.quantitiesByExpiration.merge(item.getExpirationDate(), item.getQuantity(), ItemListUtils::clampAdd);
+
+        save();
+    }
+
+    private void save() {
+        if (fileManager != null && filename != null) {
+            fileManager.saveFridgeData(this, filename);
+        }
     }
 
     /**
@@ -57,6 +100,9 @@ public class Fridge implements ItemList {
         if (remaining == 0) {
             inventoryByKey.remove(Key.of(name));
         }
+
+        save();
+        
         return ItemListUtils.clampToIntMax(remaining);
     }
 
@@ -117,5 +163,27 @@ public class Fridge implements ItemList {
     public List<Item> filterByExpirationUntil(LocalDate until) {
         Objects.requireNonNull(until, "until");
         return search(new SearchCriteria(null, NameMatchMode.CONTAINS, null, null, null, until, true, SearchSort.DEFAULT));
+    }
+
+    @JsonGetter("items")
+    public List<Item> getItemsForSerialization() {
+        return new ArrayList<>(listItems());
+    }
+    
+    @JsonSetter("items")
+    public void setItemsFromSerialization(List<Item> items) {
+        // Temporarily disable fileManager during deserialization
+        FridgeFileManager tempFileManager = this.fileManager;
+        String tempFilename = this.filename;
+        this.fileManager = null;
+        this.filename = null;
+        
+        for (Item item : items) {
+            add(item);
+        }
+        
+        // Restore fileManager
+        this.fileManager = tempFileManager;
+        this.filename = tempFilename;
     }
 }
