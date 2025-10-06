@@ -2,7 +2,6 @@
 
 package gr2536.fxui;
 
-import java.io.File;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -12,7 +11,6 @@ import gr2536.core.Item;
 import gr2536.core.NameMatchMode;
 import gr2536.core.SearchCriteria;
 import gr2536.core.SearchSort;
-import gr2536.fxui.FridgeService;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.BooleanBinding;
 import javafx.collections.FXCollections;
@@ -25,18 +23,23 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonBar;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.DatePicker;
+import javafx.scene.control.Dialog;
+import javafx.scene.control.DialogPane;
+import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.scene.control.Spinner;
 import javafx.scene.control.SpinnerValueFactory;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.AnchorPane;
-import javafx.stage.FileChooser;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Region;
 import javafx.stage.Stage;
-import javafx.stage.Window;
 
 /**
  * JavaFX controller for the Fridge UI.
@@ -52,16 +55,6 @@ import javafx.stage.Window;
  */
 public class FridgeAppController {
 
-    // ========== Input fields for item, quantity, expiration date ==========
-    /** Item name input field. */
-    @FXML
-    private TextField nameField;
-    /** Quantity spinner for add operations. */
-    @FXML
-    private Spinner<Integer> quantitySpinner;
-    /** Expiration date picker. */
-    @FXML
-    private DatePicker expirationPicker;
     /** Root pane/Background. */
     @FXML
     private AnchorPane root;
@@ -110,21 +103,6 @@ public class FridgeAppController {
     /** Button to add item with quantity from spinner. */
     @FXML
     private Button addButton;
-    /** Button to add exactly one unit of item. */
-    @FXML
-    private Button addOneButton;
-    /** Button to remove one unit of selected item. */
-    @FXML
-    private Button removeOneButton;
-    /** Button to remove all units of selected item. */
-    @FXML
-    private Button removeAllButton;
-    /** Button to load fridge data from file. */
-    @FXML
-    private Button loadButton;
-    /** Button to save fridge data to file. */
-    @FXML
-    private Button saveButton;
     /** Button to navigate to shopping list. */
     @FXML
     private Button shoppingListButton;
@@ -135,7 +113,7 @@ public class FridgeAppController {
 
     // ========== Domain model & Persistence ==========
     /** File manager for persistence. */
-    private final FridgeFileManager ffm = new FridgeFileManager();
+    // private final FridgeFileManager ffm = new FridgeFileManager();
 
     /** ListView backing data. */
     private final ObservableList<Item> items = FXCollections.observableArrayList();
@@ -159,11 +137,9 @@ public class FridgeAppController {
     @FXML
     private void initialize() {
         setupListView();
-        setupSpinner();
         setupSearchControls();
         setupFilterControls();
         setupButtonEvents();
-        setupButtonBindings();
         setupBackgroundClickHandling();
         setupListViewSelectionClearing();
         refreshFromModel();
@@ -177,37 +153,91 @@ public class FridgeAppController {
 
     /** Creates a custom ListCell for displaying Item details. */
     private ListCell<Item> createItemCell() {
-        ListCell<Item> cell = new ListCell<>() {
-            @Override
-            protected void updateItem(Item item, boolean empty) {
-                super.updateItem(item, empty);
-                if (empty || item == null) {
-                    setText(null);
-                } else {
-                    String date = item.getExpirationDate() == null ? "(no date)" : item.getExpirationDate().toString();
-                    setText(item.getName() + " - " + item.getQuantity() + " - exp: " + date);
-                }
+    return new ListCell<>() {
+
+        private final Label title = new Label();
+        private final Button plus = new Button("+");
+        private final Button minus = new Button("-");
+        private final Button del = new Button("Del");
+        private final HBox actions = new HBox(6, plus, minus, del);
+        private final Region spacer = new Region();
+        private final HBox root = new HBox(10, title, spacer, actions);
+
+        {
+            // Layout
+            spacer.setMinWidth(0);
+            javafx.scene.layout.HBox.setHgrow(spacer, javafx.scene.layout.Priority.ALWAYS);
+
+            // Only show the action buttons when selected or hovered
+            actions.visibleProperty().bind(selectedProperty().or(hoverProperty()));
+            actions.managedProperty().bind(actions.visibleProperty());
+
+            addEventFilter(javafx.scene.input.MouseEvent.MOUSE_PRESSED,
+                e -> FridgeAppController.this.handleCellToggle(this, e));
+
+            // Wire to existing controller methods:
+            plus.setOnAction(e -> {
+                if (getItem() == null) return;
+                // 1) make this row the selection
+                fridgeList.getSelectionModel().select(getIndex());
+                // 2) call the controller's existing handler
+                onAddOne(new javafx.event.ActionEvent(plus, plus));
+                e.consume();
+            });
+
+            minus.setOnAction(e -> {
+                if (getItem() == null) return;
+                fridgeList.getSelectionModel().select(getIndex());
+                onRemoveOne(new javafx.event.ActionEvent(minus, minus));
+                e.consume();
+            });
+
+            del.setOnAction(e -> {
+                if (getItem() == null) return;
+                fridgeList.getSelectionModel().select(getIndex());
+                onRemoveAll(new javafx.event.ActionEvent(del, del));
+                e.consume();
+            });
+
+            //Tooltips
+            plus.setTooltip(new javafx.scene.control.Tooltip("Add one"));
+            minus.setTooltip(new javafx.scene.control.Tooltip("Remove one"));
+            del.setTooltip(new javafx.scene.control.Tooltip("Remove all"));
+        }
+
+        @Override
+        protected void updateItem(Item item, boolean empty) {
+            super.updateItem(item, empty);
+            if (empty || item == null) {
+                setText(null);
+                setGraphic(null);
+            } else {
+                String date = item.getExpirationDate() == null ? "(no date)" : item.getExpirationDate().toString();
+                title.setText(item.getName() + " - " + item.getQuantity() + " - exp: " + date);
+                setText(null);
+                setGraphic(root);
             }
-        };
-        cell.addEventFilter(javafx.scene.input.MouseEvent.MOUSE_PRESSED, e -> handleCellToggle(cell, e));
-        return cell;
+        }
+    };
     }
 
     /** Handles toggling selection when clicking an already-selected cell. */
     private void handleCellToggle(ListCell<Item> cell, javafx.scene.input.MouseEvent e) {
-        if (!cell.isEmpty()) {
-            int index = cell.getIndex();
-            if (fridgeList.getSelectionModel().getSelectedIndex() == index) {
-                fridgeList.getSelectionModel().clearSelection();
-                e.consume();
-            }
+        if (cell.isEmpty()) return;
+
+        javafx.scene.Node target = (javafx.scene.Node) e.getTarget();
+        if (isInsideControl(target)) {
+            // Click was on a Button/Control inside the cell → let it through
+            return;
+        }
+
+        int index = cell.getIndex();
+        if (fridgeList.getSelectionModel().getSelectedIndex() == index) {
+            fridgeList.getSelectionModel().clearSelection();
+            e.consume();
         }
     }
 
-    /** Sets up the quantity spinner for add operations. */
-    private void setupSpinner() {
-        quantitySpinner.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(1, 99, 1));
-    }
 
     /**
      * Sets up search-related controls: combo boxes and button bindings.
@@ -266,48 +296,7 @@ public class FridgeAppController {
     /** Wires button click events to their handlers. */
     private void setupButtonEvents() {
         addButton.setOnAction(this::onAdd);
-        addOneButton.setOnAction(this::onAddOne);
-        removeOneButton.setOnAction(this::onRemoveOne);
-        removeAllButton.setOnAction(this::onRemoveAll);
-        loadButton.setOnAction(this::onLoad);
-        saveButton.setOnAction(this::onSave);
         shoppingListButton.setOnAction(this::onNavigateToShoppingList);
-    }
-
-    /** Sets up enable/disable bindings for buttons based on input validation. */
-    private void setupButtonBindings() {
-        // Name validation
-        BooleanBinding nameBlank = Bindings.createBooleanBinding(
-            () -> nameField.getText() == null || nameField.getText().trim().isEmpty(),
-            nameField.textProperty()
-        );
-
-        // Quantity validation
-        BooleanBinding qtyInvalid = Bindings.createBooleanBinding(
-            () -> quantitySpinner.getValue() == null || quantitySpinner.getValue() <= 0,
-            quantitySpinner.valueProperty()
-        );
-
-        // Date validation
-        BooleanBinding dateMissing = Bindings.createBooleanBinding(
-            () -> expirationPicker.getValue() == null,
-            expirationPicker.valueProperty()
-        );
-
-        // Selection validation
-        BooleanBinding noSelection = fridgeList.getSelectionModel()
-            .selectedItemProperty().isNull();
-
-        // Add buttons: require name and date
-        addButton.disableProperty().bind(nameBlank.or(qtyInvalid).or(dateMissing));
-        addOneButton.disableProperty().bind(nameBlank.or(dateMissing));
-
-        // Remove buttons: require item selection
-        removeOneButton.disableProperty().bind(noSelection);
-        removeAllButton.disableProperty().bind(noSelection);
-
-        // Save button: require at least one item
-        saveButton.disableProperty().bind(Bindings.isEmpty(items));
     }
 
     /** Handles background clicks to clear focus and selection. */
@@ -467,6 +456,32 @@ public class FridgeAppController {
         }
     }
 
+    private Item showAddItemDialog() {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/gr2536/fxui/AddItemDialog.fxml"));
+            DialogPane pane = loader.load();
+            AddItemDialogController ctrl = loader.getController();
+
+            Dialog<Item> dialog = new Dialog<>();
+            dialog.setTitle("Add Item");
+            dialog.setDialogPane(pane);
+            dialog.getDialogPane().getStylesheets().add(
+                getClass().getResource("/gr2536/fxui/FridgeApp.css").toExternalForm()
+            );
+
+            dialog.setResultConverter(bt ->
+                bt != null && (bt == ButtonType.OK || bt.getButtonData() == ButtonBar.ButtonData.OK_DONE)
+                    ? ctrl.buildItemOrThrow()
+                    : null
+            );
+            return dialog.showAndWait().orElse(null);        
+
+        } catch (Exception ex) {
+            showException("Could not open Add Item dialog", ex);
+            return null;
+        }
+    }
+
     /**
      * Adds the specified quantity of an item to the fridge.
      * Clears fields and focuses name field on success.
@@ -476,24 +491,12 @@ public class FridgeAppController {
      */
     @FXML
     private void onAdd(ActionEvent e) {
-        try {
-            String name = nameField.getText().trim();
-            int qty = quantitySpinner.getValue();
-            LocalDate date = expirationPicker.getValue();
-
-            Item item = new Item(name, qty, date);
-            getFridge().add(item);
-            refreshFromModel();
-
-            nameField.clear();
-            quantitySpinner.getValueFactory().setValue(1);
-            expirationPicker.setValue(null);
-
-            nameField.requestFocus();
-
-        } catch (IllegalArgumentException exception) {
-            showError("Invalid input", exception);
+        Item item = showAddItemDialog();
+        if (item == null) {
+            return;
         }
+        getFridge().add(item);
+        refreshFromModel();
     }
 
     /**
@@ -506,26 +509,18 @@ public class FridgeAppController {
      */
     @FXML
     private void onAddOne(ActionEvent e) {
-        try {
-            String name = nameField.getText().trim();
-            LocalDate date = expirationPicker.getValue();
-
-            // Always add quantity of 1
-            Item item = new Item(name, 1, date);
-            getFridge().add(item);
-
-            // Refresh view (respecting current filters if active)
-            refreshFromModel();
-
-            // Clear input fields
-            nameField.clear();
-            expirationPicker.setValue(null);
-
-            nameField.requestFocus();
-
-        } catch (IllegalArgumentException exception) {
-            showError("Invalid input", exception);
+        Item selected = fridgeList.getSelectionModel().getSelectedItem();
+        if (selected == null) {
+            return;
         }
+
+        //Increment by 1
+        getFridge().add(new Item(selected.getName(), 1, selected.getExpirationDate()));
+
+        // Refresh view (respecting current filters if active)
+        Item prev = selected;
+        refreshFromModel();
+        reselectSameBucket(prev);
     }
 
     /**
@@ -545,7 +540,9 @@ public class FridgeAppController {
         getFridge().remove(selected.getName(), 1);
 
         // Refresh view (respecting current filters if active)
+        Item prev = selected;
         refreshFromModel();
+        reselectSameBucket(prev);
     }
 
     /**
@@ -569,58 +566,58 @@ public class FridgeAppController {
         refreshFromModel();
     }
 
-    /**
-     * Load items from a .txt file in CSV-like format:
-     * {@code name, qty, YYYY-MM-DD}
-     * 
-     * @param e action event
-     */
-    @FXML
-    private void onLoad(ActionEvent e) {
-        Window window = fridgeList.getScene().getWindow();
-        FileChooser fc = new FileChooser();
-        fc.setTitle("Open fridge file");
-        fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("Text files", "*.txt"));
-        File f = fc.showOpenDialog(window);
+    // /**
+    //  * Load items from a .txt file in CSV-like format:
+    //  * {@code name, qty, YYYY-MM-DD}
+    //  * 
+    //  * @param e action event
+    //  */
+    // @FXML
+    // private void onLoad(ActionEvent e) {
+    //     Window window = fridgeList.getScene().getWindow();
+    //     FileChooser fc = new FileChooser();
+    //     fc.setTitle("Open fridge file");
+    //     fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("Text files", "*.txt"));
+    //     File f = fc.showOpenDialog(window);
 
-        if (f != null) {
-            try {
-                Fridge newFridge = new Fridge();
-                ffm.readFridgeData(newFridge, f.getAbsolutePath());
-                FridgeService.setFridge(newFridge);
+    //     if (f != null) {
+    //         try {
+    //             Fridge newFridge = new Fridge();
+    //             ffm.readFridgeData(newFridge, f.getAbsolutePath());
+    //             FridgeService.setFridge(newFridge);
                 
-                // Clear any active filters when loading new data
-                currentSearchCriteria = null;
-                isFiltered = false;
-                refreshFromModel();
-            } catch (Exception exception) {
-                showError("Could not read file.", exception);
-            }
-        }
-    }
+    //             // Clear any active filters when loading new data
+    //             currentSearchCriteria = null;
+    //             isFiltered = false;
+    //             refreshFromModel();
+    //         } catch (Exception exception) {
+    //             showError("Could not read file.", exception);
+    //         }
+    //     }
+    // }
 
-    /**
-     * Save items to a .txt file in CSV-like format:
-     * {@code name, qty, YYYY-MM-DD}
-     * 
-     * @param e action event
-     */
-    @FXML
-    private void onSave(ActionEvent e) {
-        Window window = fridgeList.getScene().getWindow();
-        FileChooser fc = new FileChooser();
-        fc.setTitle("Save fridge file");
-        fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("Text files", "*.txt"));
-        File f = fc.showSaveDialog(window);
+    // /**
+    //  * Save items to a .txt file in CSV-like format:
+    //  * {@code name, qty, YYYY-MM-DD}
+    //  * 
+    //  * @param e action event
+    //  */
+    // @FXML
+    // private void onSave(ActionEvent e) {
+    //     Window window = fridgeList.getScene().getWindow();
+    //     FileChooser fc = new FileChooser();
+    //     fc.setTitle("Save fridge file");
+    //     fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("Text files", "*.txt"));
+    //     File f = fc.showSaveDialog(window);
 
-        if (f != null) {
-            try {
-                ffm.saveFridgeData(getFridge(), f.getAbsolutePath());
-            } catch (Exception exception) {
-                showError("Could not save file.", exception);
-            }
-        }
-    }
+    //     if (f != null) {
+    //         try {
+    //             ffm.saveFridgeData(getFridge(), f.getAbsolutePath());
+    //         } catch (Exception exception) {
+    //             showError("Could not save file.", exception);
+    //         }
+    //     }
+    // }
 
     /**
      * Navigate to the Shopping List interface.
@@ -723,6 +720,33 @@ public class FridgeAppController {
     }
 
     /**
+     * Show an error alert with the given header and exception message.
+     * Made due to error message in showError not being fully shown, due to being it truncated.
+     * 
+     * @param header the error header text
+     * @param exception the exception containing the error message
+     */
+    private void showException(String header, Throwable ex) {
+        Alert a = new Alert(Alert.AlertType.ERROR);
+        a.setTitle("Error");
+        a.setHeaderText(header);
+        a.setContentText(String.valueOf(ex.getMessage()));
+
+        var sw = new java.io.StringWriter();
+        ex.printStackTrace(new java.io.PrintWriter(sw));
+        var ta = new javafx.scene.control.TextArea(sw.toString());
+        ta.setEditable(false); ta.setWrapText(false);
+        ta.setMaxWidth(Double.MAX_VALUE); ta.setMaxHeight(Double.MAX_VALUE);
+
+        var gp = new javafx.scene.layout.GridPane();
+        gp.setMaxWidth(Double.MAX_VALUE);
+        gp.add(ta, 0, 0);
+
+        a.getDialogPane().setExpandableContent(gp);
+        a.showAndWait();
+    }
+
+    /**
      * Gets the shared Fridge instance from FridgeService.
      * 
      * @return the current Fridge instance
@@ -730,4 +754,18 @@ public class FridgeAppController {
     private Fridge getFridge() {
         return FridgeService.getFridge();
     }
+
+    //* Keep selection after onAddOne/onRemoveOne after list is rebuilt*/
+    private void reselectSameBucket(Item prev) {
+    for (int i = 0; i < items.size(); i++) {
+        Item it = items.get(i);
+        boolean sameName = it.getName().equalsIgnoreCase(prev.getName());
+        boolean sameDate = java.util.Objects.equals(it.getExpirationDate(), prev.getExpirationDate());
+        if (sameName && sameDate) {
+            fridgeList.getSelectionModel().select(i);
+            fridgeList.scrollTo(i);
+            break;
+        }
+    }
+    } 
 }
