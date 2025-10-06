@@ -26,6 +26,17 @@
   -accent-75:   rgba(44,186,206,0.75);
   -accent-90:   rgba(44,186,206,0.90);
 
+  /* Neutral */
+  -root-white: #FFFFFF;
+
+  /* Danger */
+  -danger: #E74C3C;
+  -danger-12: rgba(231,76,60,0.12);
+  -danger-24: rgba(231,76,60,0.24);
+  -danger-45: rgba(231,76,60,0.45);
+  -danger-75: rgba(231,76,60,0.75);
+  -danger-90: rgba(231,76,60,0.90);
+
   /* JavaFX hooks */
   -fx-accent:            -accent;
   -fx-focus-color:       -accent;
@@ -105,6 +116,7 @@
 .spinner .decrement-arrow-button:hover .decrement-arrow { -fx-background-color: -text; }
 
 /* =================== Buttons =================== */
+/* Teal */
 .button.primary {
   -fx-background-color: transparent;
   -fx-text-fill: -accent;
@@ -121,8 +133,38 @@
 }
 .button.primary:focused { -fx-effect: dropshadow(gaussian, -accent-glow, 8, 0.30, 0, 0); }
 
-/* Make Add & Remove bold */
-#addButton, #removeButton { -fx-font-weight: bold; }
+/* White */
+.button.secondary {
+  -fx-background-color: transparent;
+  -fx-text-fill: -root-white;
+  -fx-border-color: rgba(255,255,255,0.70);
+  -fx-border-radius: 8px;
+  -fx-padding: 8px 14px;
+  -fx-font-weight: 600;
+}
+.button.secondary:hover {
+  -fx-background-color: rgba(255,255,255,0.08);
+  -fx-border-color: rgba(255,255,255,0.95);
+  -fx-effect: dropshadow(gaussian, rgba(255,255,255,0.18), 12, 0.35, 0, 0);
+}
+
+/* Danger (red) */
+.button.danger {
+  -fx-background-color: transparent;
+  -fx-text-fill: -danger-90;
+  -fx-border-color: -danger-75;
+  -fx-border-radius: 8px;
+  -fx-padding: 8px 14px;
+  -fx-font-weight: 700;
+}
+.button.danger:hover {
+  -fx-background-color: -danger-12;
+  -fx-border-color: -danger-90;
+  -fx-effect: dropshadow(gaussian, -danger-24, 12, 0.35, 0, 0);
+}
+
+/* Make Add bold */
+#addButton { -fx-font-weight: bold; }
 
 /* =================== ListView =================== */
 .list-view {
@@ -266,3 +308,20 @@
 .scroll-bar .increment-arrow, .scroll-bar .decrement-arrow { -fx-background-color: -muted; }
 .scroll-bar .increment-button:hover .increment-arrow,
 .scroll-bar .decrement-button:hover .decrement-arrow { -fx-background-color: -text; }
+
+/* ===== Error state (pseudoclass) ===== */
+.text-field:error,
+.combo-box-base:error,
+.spinner:error,
+.date-picker:error {
+  -fx-border-color: -danger;
+  -fx-background-color: derive(-danger, -80%); /* gentle tint */
+  -fx-effect: dropshadow(gaussian, -danger-24, 10, 0.35, 0, 0);
+}
+
+/* Keep inner editor consistent inside composite controls */
+.spinner:error .text-field,
+.date-picker:error .text-field,
+.combo-box:error .list-cell {
+  -fx-text-fill: -text;
+}
