@@ -169,8 +169,15 @@ public class FridgeAppController {
             javafx.scene.layout.HBox.setHgrow(spacer, javafx.scene.layout.Priority.ALWAYS);
 
             // Only show the action buttons when selected or hovered
-            actions.visibleProperty().bind(selectedProperty().or(hoverProperty()));
-            actions.managedProperty().bind(actions.visibleProperty());
+            actions.setManaged(true);
+            actions.setVisible(true);
+            
+            var show = selectedProperty().or(hoverProperty());
+            actions.opacityProperty().bind(
+                Bindings.when(show).then(1.0).otherwise(0.0)
+            );
+            
+            actions.mouseTransparentProperty().bind(show.not());
 
             addEventFilter(javafx.scene.input.MouseEvent.MOUSE_PRESSED,
                 e -> FridgeAppController.this.handleCellToggle(this, e));
