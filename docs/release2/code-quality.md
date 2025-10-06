@@ -35,6 +35,7 @@ Maintainable code can be easily extended, refactored, or fixed without breaking 
 - Refactor regularly to reduce duplication or complexity
 - Update documentation and tests alongside code changes; all new functionality must be followed by adequate testing in the same PR
 - Ensure code reviews focus on structure and clarity
+- The team uses Maven extensions JaCoCo, Spotbugs and Checkstyle to ensure test coverage, which is essential for code maintainability
 
 ## Reliability / Resiliency
 
