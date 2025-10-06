@@ -59,14 +59,12 @@
             
             <CheckBox fx:id="filterIncludeUnknownCheck" text="Include items without expiration date" GridPane.columnIndex="0" GridPane.rowIndex="1" GridPane.columnSpan="4"/>
             <HBox spacing="8" GridPane.columnIndex="4" GridPane.rowIndex="1" GridPane.columnSpan="2">
-              <Button fx:id="applyFilterButton" text="Apply Filter" styleClass="primary"/>
+              <Button fx:id="applyFilterButton" text="Apply Filter" styleClass="secondary"/>
               <Button fx:id="clearFilterButton" text="Clear Filter"/>
             </HBox>
           </children>
         </GridPane>
       </VBox>
-
-      <Separator/>
 
       <!-- Add Item Section -->
       <VBox spacing="6" styleClass="section">
@@ -78,7 +76,7 @@
           </HBox>
           <Region HBox.hgrow="ALWAYS"/>
           <HBox spacing="8" alignment="CENTER_RIGHT">
-            <Button fx:id="shoppingListButton" text="Shopping List" styleClass="primary"/>
+            <Button fx:id="shoppingListButton" text="Shopping List" styleClass="secondary"/>
           </HBox>
         </HBox>
       </VBox>
