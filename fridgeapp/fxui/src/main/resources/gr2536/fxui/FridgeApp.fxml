@@ -71,34 +71,14 @@
       <!-- Add Item Section -->
       <VBox spacing="6" styleClass="section">
         <Label text="Add Item" styleClass="section-header"/>
-        <GridPane hgap="8" vgap="6">
-          <columnConstraints>
-            <ColumnConstraints prefWidth="250" hgrow="ALWAYS"/>
-            <ColumnConstraints prefWidth="95" hgrow="ALWAYS"/>
-            <ColumnConstraints prefWidth="180"/>
-          </columnConstraints>
-          <rowConstraints>
-            <RowConstraints vgrow="NEVER"/>
-          </rowConstraints>
-          <children>
-            <TextField fx:id="nameField" promptText="Item Name" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
-            <Spinner fx:id="quantitySpinner" editable="true" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
-            <DatePicker fx:id="expirationPicker" promptText="Expiration Date" GridPane.columnIndex="2" GridPane.rowIndex="0"/>
-          </children>
-        </GridPane>
 
         <HBox spacing="8" alignment="CENTER_LEFT">
           <HBox spacing="8">
-            <Button fx:id="addOneButton" text="Add One" styleClass="primary"/>
-            <Button fx:id="addButton" text="Add All" styleClass="primary"/>
-            <Button fx:id="removeOneButton" text="Remove One" styleClass="primary"/>
-            <Button fx:id="removeAllButton" text="Remove All" styleClass="primary"/>
+            <Button fx:id="addButton" text="Add Item" styleClass="primary"/>
           </HBox>
           <Region HBox.hgrow="ALWAYS"/>
           <HBox spacing="8" alignment="CENTER_RIGHT">
             <Button fx:id="shoppingListButton" text="Shopping List" styleClass="primary"/>
-            <Button fx:id="loadButton" text="Load" styleClass="primary"/>
-            <Button fx:id="saveButton" text="Save" styleClass="primary"/>
           </HBox>
         </HBox>
       </VBox>
