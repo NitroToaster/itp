@@ -11,6 +11,7 @@
   <modules>
     <module>core</module>
     <module>fxui</module>
+    <module>utils</module>
   </modules>
 
   <name>fridgeapp</name>
@@ -43,6 +44,25 @@
         <version>${jupiter.version}</version>
         <scope>test</scope>
     </dependency>
+
+    <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-core</artifactId>
+            <version>2.20.0</version>
+            </dependency>
+
+            <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-annotations</artifactId>
+            <version>2.19.0</version>
+            </dependency>
+
+            <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>2.19.0</version>
+        </dependency>
+        
   </dependencies>
 
   <build>
