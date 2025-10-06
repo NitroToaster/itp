@@ -1,0 +1,115 @@
+package gr2536.fxui;
+
+import java.time.LocalDate;
+
+import gr2536.core.Item;
+import javafx.beans.binding.Bindings;
+import javafx.beans.binding.BooleanBinding;
+import javafx.fxml.FXML;
+import javafx.scene.control.Button;
+import javafx.scene.control.ButtonBar;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.DatePicker;
+import javafx.scene.control.DialogPane;
+import javafx.scene.control.Spinner;
+import javafx.scene.control.SpinnerValueFactory;
+import javafx.scene.control.TextField;
+
+/**
+ * Controller for the “Add Item” dialog.
+ * Wires FXML controls, performs lightweight input validation,
+ * and exposes a factory method to build an {@link Item}.
+ */
+public class AddItemDialogController {
+
+    // ========== Action buttons ==========
+    /** Item name input field. */
+    @FXML
+    private TextField nameField;
+    /** Quantity spinner for add operations. */
+    @FXML
+    private Spinner<Integer> quantitySpinner;
+    /** Expiration date picker. */
+    @FXML
+    private DatePicker expirationPicker;
+    //* DialogPane Root */
+    @FXML
+    private DialogPane dialogPane;
+
+    //* See issue #53 */
+    // private static PseudoClass ERROR = PseudoClass.getPseudoClass("error");
+
+    //Shared validation binding
+    private BooleanBinding nameBlank;
+
+
+    /**
+    * Initializes control state, validation styling, and OK-button enablement.
+    * Called automatically by the FXMLLoader after FXML injection.
+    */
+    @FXML
+    private void initialize() {
+        setupSpinner();
+
+        //Binding reused by Validation and OkButtonBinding
+        nameBlank = Bindings.createBooleanBinding(
+            () -> nameField.getText() == null || nameField.getText().trim().isEmpty(),
+            nameField.textProperty()
+        );
+
+        setupValidation();
+        setupOkButtonBinding();
+    }
+
+    /** Sets up the quantity spinner for add operations. */
+    private void setupSpinner() {
+        quantitySpinner.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(1, 99, 1));
+    }
+
+     /**
+     * Keeps the UI’s validation state in sync with user input.
+     * Currently clears any inline error style when the name field becomes non-blank.
+     * TODO (issue #53): replace inline style with a CSS pseudoclass-driven approach.
+     */
+    private void setupValidation() {
+        nameField.textProperty().addListener((obs, old, val) -> {
+            if (val != null && !val.trim().isEmpty())
+                //TODO update to CSS pseudoclass; see issue #53
+                nameField.setStyle("");
+        });
+
+        //CSS error state; see issue #53
+        // nameBlank.addListener((obs, wasBlank, isBlank) ->
+        //     nameField.pseudoClassStateChanged(ERROR, isBlank)
+        // );        
+    }
+
+    /**
+     * Disables the dialog’s OK button while the name field is blank.
+     * Looks up the OK button from the injected {@link DialogPane} and binds its
+     * {@code disableProperty()} to {@code nameBlank}.
+     */
+    private void setupOkButtonBinding() {
+        ButtonType okType = dialogPane.getButtonTypes().stream()
+                .filter(bt -> bt.getButtonData() == ButtonBar.ButtonData.OK_DONE)
+                .findFirst()
+                .orElse(null);
+
+        if (okType != null) {
+            Button ok = (Button) dialogPane.lookupButton(okType);
+            ok.disableProperty().bind(nameBlank);
+        }
+    }
+
+    /** Builds an Item from the current UI values.
+     *  @return immutable {@link Item}
+     *  @throws IllegalArgumentException if name is blank or quantity ≤ 0 (as enforced by {@link Item})
+     */
+    Item buildItemOrThrow() {
+        String name = nameField.getText() == null ? "" : nameField.getText().trim();
+        Integer qty = quantitySpinner.getValue() == null ? 1 : quantitySpinner.getValue();
+        LocalDate exp = expirationPicker.getValue();
+
+        return new Item(name, qty, exp);
+    }
+}
