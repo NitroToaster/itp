@@ -170,6 +170,11 @@ public class FridgeAppController {
         private final HBox root = new HBox(10, title, spacer, actions);
 
         {
+            // CSS
+            plus.getStyleClass().addAll("cell-action", "cell-plus");
+            minus.getStyleClass().addAll("cell-action", "cell-minus");
+            del.getStyleClass().addAll("cell-action", "cell-danger");
+
             // Layout
             spacer.setMinWidth(0);
             javafx.scene.layout.HBox.setHgrow(spacer, javafx.scene.layout.Priority.ALWAYS);

@@ -12,7 +12,7 @@
   -line-lite: rgba(255,255,255,0.12);
 
   /* Text */
-  -text:       #EDEFF6;    /* default labels */
+  -text:       #EDEFF6;
   -muted:      #B8C2CC;
   -input-text: #D9DEE7;
 
@@ -47,6 +47,7 @@
 
 /* =================== Layout =================== */
 .root, .anchor-pane, .vbox, .hbox { -fx-background-color: -bg-900; }
+.label { -fx-text-fill: -text; }
 
 .panel {
   -fx-background-color: -panel-1;
@@ -58,6 +59,11 @@
   -fx-padding: 12px;
 }
 
+/* Sections */
+.section { -fx-spacing: 6px; }
+.section-header { -fx-text-fill: -text; -fx-font-size: 14px; -fx-font-weight: 700; -fx-opacity: 0.95; }
+.separator *.line { -fx-background-color: -line; }
+
 /* =================== Inputs =================== */
 .text-field, .date-picker, .spinner {
   -fx-background-color: -panel-2;
@@ -68,6 +74,8 @@
   -fx-border-radius: 6px;
   -fx-padding: 7px 10px;
   -fx-effect: none;
+  -fx-background-insets: 0;
+  -fx-border-insets: 0;
 }
 .text-field:hover, .date-picker:hover, .spinner:hover { -fx-border-color: -line-lite; }
 .text-field:focused, .date-picker:focused, .spinner:focused {
@@ -75,9 +83,19 @@
   -fx-effect: dropshadow(gaussian, -accent-glow, 8, 0.30, 0, 0);
 }
 
-/* Keep inner text fields neutral when parent is focused */
+/* Keep inner editors neutral and flat */
+.date-picker .text-field,
+.spinner .text-field { -fx-background-insets: 0; -fx-border-insets: 0; }
 .date-picker .text-field:focused,
 .spinner .text-field:focused { -fx-border-color: -line-lite; -fx-effect: none; }
+
+/* Selection/caret on dark */
+.text-input {
+  -fx-highlight-fill: -accent-24;
+  -fx-highlight-text-fill: -text;
+  -fx-text-box-border: -line;
+  -fx-caret-color: -text;
+}
 
 /* DatePicker button */
 .date-picker > .arrow-button {
@@ -115,8 +133,66 @@
 .spinner .increment-arrow-button:hover .increment-arrow,
 .spinner .decrement-arrow-button:hover .decrement-arrow { -fx-background-color: -text; }
 
+/* =================== ComboBox =================== */
+.combo-box-base {
+  -fx-background-color: -panel-2;
+  -fx-text-fill: -input-text;
+  -fx-prompt-text-fill: -muted;
+  -fx-border-color: -line;
+  -fx-background-radius: 6px;
+  -fx-border-radius: 6px;
+  -fx-padding: 0 6px;
+  -fx-background-insets: 0;
+  -fx-border-insets: 0;
+}
+.combo-box-base:hover   { -fx-border-color: -line-lite; }
+.combo-box-base:focused { -fx-border-color: -accent; -fx-effect: dropshadow(gaussian, -accent-glow, 8, 0.30, 0, 0); }
+
+.combo-box > .arrow-button {
+  -fx-background-color: transparent;
+  -fx-border-color: transparent;
+  -fx-padding: 0 8px;
+  -fx-background-radius: 6px;
+  -fx-border-radius: 6px;
+}
+.combo-box > .arrow-button .arrow { -fx-background-color: -muted; }
+.combo-box > .arrow-button:hover {
+  -fx-background-color: rgba(255,255,255,0.04);
+  -fx-border-color: -line-lite;
+  -fx-cursor: hand;
+}
+.combo-box > .arrow-button:hover .arrow { -fx-background-color: -text; }
+
+/* Popup list */
+.combo-box-popup .list-view {
+  -fx-background-color: -panel-1;
+  -fx-background-radius: 8px;
+  -fx-border-color: -line;
+  -fx-border-radius: 8px;
+  -fx-padding: 4px;
+}
+.combo-box-popup .list-view .list-cell {
+  -fx-text-fill: -text;
+  -fx-background-color: transparent;
+  -fx-padding: 6px 10px;
+}
+.combo-box-popup .list-view .list-cell:hover   { -fx-background-color: rgba(88,209,227,0.10); -fx-background-radius: 6px; }
+.combo-box-popup .list-view .list-cell:selected{ -fx-background-color: -accent-24; -fx-text-fill: #F5F7FA; -fx-background-radius: 6px; }
+
+/* =================== CheckBox =================== */
+.check-box { -fx-text-fill: -text; }
+.check-box .box {
+  -fx-background-color: -panel-2;
+  -fx-border-color: -line;
+  -fx-background-radius: 4px;
+  -fx-border-radius: 4px;
+}
+.check-box:hover .box { -fx-border-color: -line-lite; }
+.check-box:selected .box { -fx-background-color: -accent-12; -fx-border-color: -accent-60; }
+.check-box:selected .mark { -fx-background-color: -accent; }
+
 /* =================== Buttons =================== */
-/* Teal */
+/* Teal (Primary)*/
 .button.primary {
   -fx-background-color: transparent;
   -fx-text-fill: -accent;
@@ -133,7 +209,7 @@
 }
 .button.primary:focused { -fx-effect: dropshadow(gaussian, -accent-glow, 8, 0.30, 0, 0); }
 
-/* White */
+/* White (Secondary)*/
 .button.secondary {
   -fx-background-color: transparent;
   -fx-text-fill: -root-white;
@@ -147,8 +223,9 @@
   -fx-border-color: rgba(255,255,255,0.95);
   -fx-effect: dropshadow(gaussian, rgba(255,255,255,0.18), 12, 0.35, 0, 0);
 }
+.button.secondary:focused { -fx-effect: dropshadow(gaussian, -accent-glow, 8, 0.30, 0, 0); }
 
-/* Danger (red) */
+/* Red (Danger) */
 .button.danger {
   -fx-background-color: transparent;
   -fx-text-fill: -danger-90;
@@ -162,6 +239,24 @@
   -fx-border-color: -danger-90;
   -fx-effect: dropshadow(gaussian, -danger-24, 12, 0.35, 0, 0);
 }
+.button.danger:focused { -fx-effect: dropshadow(gaussian, -accent-glow, 8, 0.30, 0, 0); }
+
+/* Filled danger */
+.button.danger.filled { -fx-background-color: -danger-75; -fx-text-fill: #0B0E11; -fx-border-color: transparent; }
+.button.danger.filled:hover { -fx-background-color: -danger; }
+
+/* Disabled */
+.button:disabled { -fx-opacity: 0.55; -fx-effect: none; -fx-cursor: default; }
+.text-field:disabled, .date-picker:disabled, .spinner:disabled, .combo-box-base:disabled {
+  -fx-opacity: 0.65;
+  -fx-background-color: derive(-panel-2, -10%);
+}
+
+/* Click feedback */
+.button:armed { -fx-background-color: rgba(255,255,255,0.05); }
+.button.primary:armed   { -fx-background-color: -accent-24; }
+.button.secondary:armed { -fx-background-color: rgba(255,255,255,0.12); }
+.button.danger:armed    { -fx-background-color: -danger-24; }
 
 /* Make Add bold */
 #addButton { -fx-font-weight: bold; }
@@ -179,7 +274,9 @@
 }
 .list-view .virtual-flow, .list-view .clipped-container,
 .list-view .sheet, .list-view .placeholder, .list-view .corner { -fx-background-color: transparent; }
-.list-view .placeholder .label { -fx-opacity: 0; -fx-padding: 0; }
+.list-view .placeholder .label { -fx-opacity: 0.7; -fx-text-fill: -muted; -fx-padding: 12 0 0 0; }
+
+.list-view:focused { -fx-effect: dropshadow(gaussian, -accent-24, 10, 0.3, 0, 0); }
 
 .list-cell {
   -fx-background-color: transparent;
@@ -188,10 +285,7 @@
   -fx-border-color: transparent transparent -row-sep transparent;
   -fx-border-width: 0 0 1px 0;
 }
-.list-cell:filled:hover {
-  -fx-background-color: rgba(88,209,227,0.10);
-  -fx-background-radius: 8px;
-}
+.list-cell:filled:hover { -fx-background-color: rgba(88,209,227,0.10); -fx-background-radius: 8px; }
 .list-cell:filled:selected,
 .list-cell:filled:selected:hover {
   -fx-background-color: -accent-24;
@@ -200,6 +294,51 @@
   -fx-background-insets: 0 0 1px 0; 
   -fx-border-color: transparent transparent -row-sep transparent;
 }
+
+/* Row action buttons (+ / − / Del) – base */
+.list-view .list-cell .button {
+  -fx-background-color: transparent;
+  -fx-text-fill: -muted;
+  -fx-border-color: -line;
+  -fx-background-radius: 6px;
+  -fx-border-radius: 6px;
+  -fx-padding: 4px 8px;
+  -fx-font-weight: 600;
+  -fx-min-width: 28px;
+  -fx-min-height: 28px;
+}
+.list-view .list-cell .button:hover {
+  -fx-text-fill: -text;
+  -fx-border-color: -line-lite;
+  -fx-background-color: rgba(255,255,255,0.04);
+}
+
+/* Variants for your per-button classes */
+.button.cell-action { /* hook if you want extra shared rules later */ }
+
+/* + (teal) */
+.button.cell-plus {
+  -fx-text-fill: -accent;
+  -fx-border-color: -accent-75;
+}
+.button.cell-plus:hover   { -fx-background-color: -accent-12; -fx-border-color: -accent-90; }
+.button.cell-plus:armed   { -fx-background-color: -accent-24; }
+
+/* − (white) */
+.button.cell-minus {
+  -fx-text-fill: -root-white;
+  -fx-border-color: rgba(255,255,255,0.70);
+}
+.button.cell-minus:hover  { -fx-background-color: rgba(255,255,255,0.08); -fx-border-color: rgba(255,255,255,0.95); }
+.button.cell-minus:armed  { -fx-background-color: rgba(255,255,255,0.12); }
+
+/* Del (red) */
+.button.cell-danger {
+  -fx-text-fill: -danger-90;
+  -fx-border-color: -danger-45;
+}
+.button.cell-danger:hover { -fx-background-color: -danger-12; -fx-border-color: -danger-90; }
+.button.cell-danger:armed { -fx-background-color: -danger-24; }
 
 /* =================== DatePicker popup =================== */
 .date-picker-popup {
@@ -282,6 +421,7 @@
 
 /* =================== Scrollbar =================== */
 .list-view .scroll-bar:vertical { -fx-pref-width: 12px; }
+.list-view .scroll-bar:horizontal { -fx-pref-height: 12px; }
 .scroll-bar { -fx-background-color: transparent; -fx-padding: 2px; }
 .scroll-bar .track {
   -fx-background-color: -panel-2;
@@ -309,19 +449,86 @@
 .scroll-bar .increment-button:hover .increment-arrow,
 .scroll-bar .decrement-button:hover .decrement-arrow { -fx-background-color: -text; }
 
+/* =================== Dialogs & Tooltips =================== */
+.dialog-pane {
+  -fx-background-color: -panel-1;
+  -fx-background-radius: 12px;
+  -fx-border-color: -line;
+  -fx-border-radius: 12px;
+}
+
+/* Flatten dialog buttons and override Modena defaults */
+.dialog-pane .button {
+  -fx-background-insets: 0;
+  -fx-border-insets: 0;
+  -fx-background-radius: 8px;
+  -fx-border-radius: 8px;
+}
+.dialog-pane .button:default {   /* neutralize default blue */
+  -fx-background-color: transparent;
+  -fx-border-color: -line;
+}
+.button.primary:default {        /* ensure primary still pops */
+  -fx-background-color: -accent-12;
+  -fx-border-color: -accent-90;
+  -fx-text-fill: -accent;
+}
+/* Treat Cancel like secondary if not classed */
+.dialog-pane .button:cancel {
+  -fx-background-color: transparent;
+  -fx-text-fill: -root-white;
+  -fx-border-color: rgba(255,255,255,0.70);
+}
+.dialog-pane .button:cancel:hover {
+  -fx-background-color: rgba(255,255,255,0.08);
+  -fx-border-color: rgba(255,255,255,0.95);
+}
+
+.dialog-pane:header *.header-panel { -fx-background-color: -panel-2; -fx-background-radius: 12px 12px 0 0; -fx-padding: 10px; }
+.dialog-pane:header .label { -fx-text-fill: -text; -fx-font-weight: 700; }
+.dialog-pane .content { -fx-padding: 10px; }
+.dialog-pane .button-bar .button { -fx-background-radius: 8px; -fx-border-radius: 8px; }
+
+.tooltip {
+  -fx-background-color: -panel-2;
+  -fx-text-fill: -text;
+  -fx-background-radius: 8px;
+  -fx-border-color: -line;
+  -fx-border-radius: 8px;
+  -fx-padding: 6px 8px;
+  -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.35), 10, 0.15, 0, 2);
+}
+
 /* ===== Error state (pseudoclass) ===== */
 .text-field:error,
 .combo-box-base:error,
 .spinner:error,
 .date-picker:error {
   -fx-border-color: -danger;
-  -fx-background-color: derive(-danger, -80%); /* gentle tint */
+  -fx-background-color: -danger-12;
   -fx-effect: dropshadow(gaussian, -danger-24, 10, 0.35, 0, 0);
 }
-
-/* Keep inner editor consistent inside composite controls */
 .spinner:error .text-field,
 .date-picker:error .text-field,
-.combo-box:error .list-cell {
-  -fx-text-fill: -text;
+.combo-box:error .list-cell { -fx-text-fill: -text; }
+
+/* =================== Page-specific overrides =================== */
+/* Make both "Clear" buttons look like secondary without touching FXML */
+#clearSearchButton,
+#clearFilterButton {
+  -fx-background-color: transparent;
+  -fx-text-fill: -root-white;
+  -fx-border-color: rgba(255,255,255,0.70);
+  -fx-border-radius: 8px;
+  -fx-padding: 8px 14px;
+  -fx-font-weight: 600;
 }
+#clearSearchButton:hover,
+#clearFilterButton:hover {
+  -fx-background-color: rgba(255,255,255,0.08);
+  -fx-border-color: rgba(255,255,255,0.95);
+}
+#clearSearchButton:focused,
+#clearFilterButton:focused { -fx-effect: dropshadow(gaussian, -accent-glow, 8, 0.30, 0, 0); }
+#clearSearchButton:armed,
+#clearFilterButton:armed { -fx-background-color: rgba(255,255,255,0.12); }

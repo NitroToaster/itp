@@ -5,6 +5,7 @@ import java.time.LocalDate;
 import gr2536.core.Item;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.BooleanBinding;
+import javafx.css.PseudoClass;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBar;
@@ -41,8 +42,8 @@ public class AddItemDialogController {
     @FXML
     private DialogPane dialogPane;
 
-    //* See issue #53 */
-    // private static PseudoClass ERROR = PseudoClass.getPseudoClass("error");
+    //* CSS PseudoClass*/
+    private static PseudoClass ERROR = PseudoClass.getPseudoClass("error");
 
     //Shared validation binding
     private BooleanBinding nameBlank;
@@ -63,6 +64,8 @@ public class AddItemDialogController {
         );
 
         setupValidation();
+        //Loads CSS
+        dialogPane.getStyleClass().add("add-item-dialog");
         setupOkButtonBinding();
     }
 
@@ -73,20 +76,15 @@ public class AddItemDialogController {
 
      /**
      * Keeps the UI’s validation state in sync with user input.
-     * Currently clears any inline error style when the name field becomes non-blank.
-     * @implNote See issue #53: replace inline style with a CSS pseudoclass-driven approach.
+     * Bind PseudoClass Error to blank name.
      */
     private void setupValidation() {
-        nameField.textProperty().addListener((obs, old, val) -> {
-            if (val != null && !val.trim().isEmpty())
-                //TODO update to CSS pseudoclass; see issue #53
-                nameField.setStyle("");
-        });
-
-        //CSS error state; see issue #53
-        // nameBlank.addListener((obs, wasBlank, isBlank) ->
-        //     nameField.pseudoClassStateChanged(ERROR, isBlank)
-        // );        
+        // Toggle CSS error
+        nameBlank.addListener((obs, wasBlank, isBlank) ->
+            nameField.pseudoClassStateChanged(ERROR, isBlank)
+        );
+        // Set initial state
+        nameField.pseudoClassStateChanged(ERROR, nameBlank.get()); 
     }
 
     /**
@@ -95,16 +93,35 @@ public class AddItemDialogController {
      * {@code disableProperty()} to {@code nameBlank}.
      */
     private void setupOkButtonBinding() {
-        ButtonType okType = dialogPane.getButtonTypes().stream()
+        javafx.application.Platform.runLater(() -> {
+
+            ButtonType okType = dialogPane.getButtonTypes().stream()
                 .filter(bt -> bt.getButtonData() == ButtonBar.ButtonData.OK_DONE)
                 .findFirst()
                 .orElse(null);
 
-        if (okType != null) {
-            Button ok = (Button) dialogPane.lookupButton(okType);
-            ok.disableProperty().bind(nameBlank);
-        }
+            if (okType != null) {
+                Button ok = (Button) dialogPane.lookupButton(okType);
+                if (ok != null) {
+                    ok.disableProperty().bind(nameBlank);
+                    ok.getStyleClass().add("primary");
+                }
+            }
+
+            ButtonType cancelType = dialogPane.getButtonTypes().stream()
+                .filter(bt -> bt.getButtonData() == ButtonBar.ButtonData.CANCEL_CLOSE)
+                .findFirst()
+                .orElse(null);
+
+            if (cancelType != null) {
+                Button cancel = (Button) dialogPane.lookupButton(cancelType);
+                if (cancel != null) {
+                    cancel.getStyleClass().add("secondary");
+                }
+            }
+        });
     }
+
 
     /** Builds an Item from the current UI values.
      *  @return immutable {@link Item}
