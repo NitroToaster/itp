@@ -1,9 +1,11 @@
 package gr2536.core;
 
 import java.time.LocalDate;
+import java.util.Locale;
 import java.util.Objects;
 
-import java.util.Locale;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * An immutable inventory item.
@@ -26,7 +28,10 @@ public final class Item {
      * @param expirationDate expiration date (nullable)
      * @throws IllegalArgumentException when validation fails
      */
-    public Item(String name, int quantity, LocalDate expirationDate) {
+    @JsonCreator
+    public Item(@JsonProperty("name") String name,
+                @JsonProperty("quantity") int quantity,
+                @JsonProperty("expirationDate") LocalDate expirationDate) {
         if (name == null || name.isBlank()) {
             throw new IllegalArgumentException("name must be non-empty");
         }

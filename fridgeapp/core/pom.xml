@@ -19,28 +19,24 @@
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-annotations</artifactId>
-            <version>2.19.0</version>
         </dependency>
 
         <!-- Jackson databind for ObjectMapper -->
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
-            <version>2.19.0</version>
         </dependency>
 
         <!-- Jackson module for Java 8 Date/Time API -->
         <dependency>
             <groupId>com.fasterxml.jackson.datatype</groupId>
             <artifactId>jackson-datatype-jsr310</artifactId>
-            <version>2.19.0</version>
         </dependency>
 
         <!-- Optional: Jackson module for Java 8 Optional, Streams, etc -->
         <dependency>
             <groupId>com.fasterxml.jackson.datatype</groupId>
             <artifactId>jackson-datatype-jdk8</artifactId>
-            <version>2.19.0</version>
         </dependency>
     </dependencies>
 </project>
