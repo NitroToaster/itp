@@ -112,6 +112,22 @@ public class FridgeAppController {
     @FXML
     private Button shoppingListButton;
 
+    /** Sidebar button to reset the view to fridge overview. */
+    @FXML
+    private Button navFridgeButton;
+
+    /** Button to toggle sidebar visibility. */
+    @FXML
+    private Button toggleSidebarButton;
+
+    /** Button to show sidebar when collapsed (floating button). */
+    @FXML
+    private Button showSidebarButton;
+
+    /** Sidebar container node for toggling. */
+    @FXML
+    private javafx.scene.layout.VBox sidebar;
+
     /** List view displaying items in the fridge. */
     @FXML
     private ListView<Item> fridgeList;
@@ -331,7 +347,17 @@ public class FridgeAppController {
     /** Wires button click events to their handlers. */
     private void setupButtonEvents() {
         addButton.setOnAction(this::onAdd);
-        shoppingListButton.setOnAction(this::onNavigateToShoppingList);
+        if (shoppingListButton != null) {
+            shoppingListButton.setOnAction(this::onNavigateToShoppingList);
+        }
+        if (navFridgeButton != null) {
+            navFridgeButton.setOnAction(this::onNavigateToFridge);
+        }
+        if (toggleSidebarButton != null) {
+            toggleSidebarButton.setOnAction(this::onToggleSidebar);
+            toggleSidebarButton.getStyleClass().removeAll("collapsed", "expanded");
+            toggleSidebarButton.getStyleClass().add("expanded");
+        }
     }
 
     /** Handles background clicks to clear focus and selection. */
@@ -521,6 +547,47 @@ public class FridgeAppController {
         } else {
             onClearSearch(e);
         }
+    }
+
+    /**
+     * Navigate back to the fridge overview, clearing filters if necessary.
+     * @param e action event from sidebar button
+     */
+    @FXML
+    private void onNavigateToFridge(ActionEvent e) {
+        if (isFiltered || currentSearchCriteria != null) {
+            onClearSearch(e);
+        } else {
+            refreshFromModel();
+        }
+    }
+
+    /**
+     * Toggles the sidebar visibility, adjusting layout spacing and toggle text.
+     * @param e action event from the toggle button
+     */
+    @FXML
+    private void onToggleSidebar(ActionEvent e) {
+        if (sidebar == null || toggleSidebarButton == null) {
+            return;
+        }
+
+        boolean currentlyVisible = sidebar.isManaged() && sidebar.isVisible();
+        sidebar.setManaged(!currentlyVisible);
+        sidebar.setVisible(!currentlyVisible);
+
+        // Update sidebar toggle button (chevron in sidebar)
+        toggleSidebarButton.setText(currentlyVisible ? "›" : "‹");
+        toggleSidebarButton.getStyleClass().removeAll("expanded", "collapsed");
+        toggleSidebarButton.getStyleClass().add(currentlyVisible ? "collapsed" : "expanded");
+
+        // Show/hide the hamburger menu button in workspace
+        if (showSidebarButton != null) {
+            showSidebarButton.setVisible(currentlyVisible);
+            showSidebarButton.setManaged(currentlyVisible);
+        }
+
+        // Do not toggle root style classes; keep global look stable
     }
 
     /**
