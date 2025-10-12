@@ -46,6 +46,12 @@ public class ShoppingListController {
     // Buttons for various actions
     @FXML private Button addItemButton, removeItemButton, addAllToInventoryButton, removeAllButton, backToFridgeButton;
     
+    // Sidebar navigation
+    @FXML private Button toggleSidebarButton;
+    @FXML private Button showSidebarButton;
+    @FXML private Button navFridgeButton;
+    @FXML private javafx.scene.layout.VBox sidebar;
+    
     // List of shopping items
     @FXML private ListView<ShoppingItem> shoppingList;
 
@@ -140,7 +146,12 @@ public class ShoppingListController {
         removeItemButton.setOnAction(this::onRemoveItem);
         addAllToInventoryButton.setOnAction(this::onAddAllToInventory);
         removeAllButton.setOnAction(this::onRemoveAll);
-        backToFridgeButton.setOnAction(e -> navigateToFridge());
+        if (backToFridgeButton != null) {
+            backToFridgeButton.setOnAction(e -> navigateToFridge());
+        }
+        
+        // Setup sidebar navigation
+        setupSidebarEvents();
 
         // Button enable/disable logic
         BooleanBinding itemBlank = Bindings.createBooleanBinding(
@@ -180,6 +191,59 @@ public class ShoppingListController {
                 e.consume();
             }
         });
+    }
+
+    /**
+     * Setup sidebar navigation button event handlers.
+     */
+    private void setupSidebarEvents() {
+        if (toggleSidebarButton != null) {
+            toggleSidebarButton.setOnAction(this::onToggleSidebar);
+        }
+        if (showSidebarButton != null) {
+            showSidebarButton.setOnAction(this::onToggleSidebar);
+        }
+        // navFridgeButton handler is set in FXML with onAction="#onNavigateToFridge"
+    }
+
+    /**
+     * Toggles the sidebar visibility.
+     */
+    @FXML
+    private void onToggleSidebar(ActionEvent e) {
+        if (sidebar == null || toggleSidebarButton == null) {
+            return;
+        }
+
+        boolean currentlyVisible = sidebar.isManaged() && sidebar.isVisible();
+        sidebar.setManaged(!currentlyVisible);
+        sidebar.setVisible(!currentlyVisible);
+
+        // Use chevron arrows: ‹ to collapse (hide), › to expand (show)
+        toggleSidebarButton.setText(currentlyVisible ? "›" : "‹");
+
+        // Show/hide the hamburger menu button
+        if (showSidebarButton != null) {
+            showSidebarButton.setVisible(currentlyVisible);
+            showSidebarButton.setManaged(currentlyVisible);
+        }
+    }
+
+    /**
+     * Navigate to shopping list view (current view - no action needed).
+     */
+    @FXML
+    private void onNavigateToShoppingList(ActionEvent e) {
+        // Already on shopping list - no action needed
+    }
+
+    /**
+     * Load data from file (placeholder for future implementation).
+     */
+    @FXML
+    private void onLoad(ActionEvent e) {
+        // TODO: Implement load functionality for shopping list if needed
+        showError("Not Implemented", new UnsupportedOperationException("Load data not yet implemented for shopping list"));
     }
 
     /**
@@ -261,6 +325,14 @@ public class ShoppingListController {
     private void onRemoveAll(ActionEvent e) {
         items.clear();
         ShoppingListService.clear();
+    }
+
+    /**
+     * Navigate back to the Fridge interface (called from sidebar button).
+     */
+    @FXML
+    private void onNavigateToFridge(ActionEvent e) {
+        navigateToFridge();
     }
 
     /**

@@ -4,40 +4,75 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<AnchorPane fx:id="root" prefWidth="760" prefHeight="480" xmlns="http://javafx.com/javafx/17.0.2" xmlns:fx="http://javafx.com/fxml/1" fx:controller="gr2536.fxui.ShoppingListController">
+<AnchorPane fx:id="root" styleClass="app-root" prefWidth="1040" prefHeight="650" xmlns="http://javafx.com/javafx/17.0.2" xmlns:fx="http://javafx.com/fxml/1" fx:controller="gr2536.fxui.ShoppingListController">
   <children>
-    <VBox spacing="8" styleClass="panel" AnchorPane.topAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.bottomAnchor="0">
-      <padding><Insets top="12" right="12" bottom="12" left="12"/></padding>
-
-      <GridPane hgap="8" vgap="6">
-        <columnConstraints>
-          <ColumnConstraints prefWidth="400" hgrow="ALWAYS"/>
-          <ColumnConstraints prefWidth="150" hgrow="ALWAYS"/>
-          <ColumnConstraints prefWidth="200"/>
-        </columnConstraints>
-        <rowConstraints>
-          <RowConstraints vgrow="NEVER"/>
-        </rowConstraints>
+    <HBox spacing="18" AnchorPane.topAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.bottomAnchor="0">
+      <VBox fx:id="sidebar" styleClass="sidebar" prefWidth="220" minWidth="220" maxWidth="220">
+        <padding><Insets top="18" right="16" bottom="18" left="16"/></padding>
+        <spacing>14</spacing>
         <children>
-          <TextField fx:id="itemField" promptText="Item name" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
-          <Spinner fx:id="quantitySpinner" editable="true" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+          <HBox spacing="8" alignment="CENTER_LEFT">
+            <VBox spacing="4" HBox.hgrow="ALWAYS">
+              <Label text="FridgeApp" styleClass="sidebar-title"/>
+              <Label text="Kitchen command center" styleClass="sidebar-subtitle" wrapText="true"/>
+            </VBox>
+            <Button fx:id="toggleSidebarButton" text="‹" styleClass="sidebar-toggle-btn" onAction="#onToggleSidebar"/>
+          </HBox>
+          <Separator/>
+
+          <VBox spacing="6" styleClass="sidebar-group">
+            <Label text="Overview" styleClass="sidebar-heading"/>
+            <Button fx:id="navFridgeButton" text="Fridge Overview" styleClass="sidebar-button" onAction="#onNavigateToFridge"/>
+            <Button text="Shopping List" styleClass="sidebar-button active" onAction="#onNavigateToShoppingList"/>
+          </VBox>
+
+          <VBox spacing="6" styleClass="sidebar-group">
+            <Label text="Data" styleClass="sidebar-heading"/>
+            <Button text="Load Data" styleClass="sidebar-button" onAction="#onLoad"/>
+          </VBox>
+
+          <Region VBox.vgrow="ALWAYS"/>
+          <Label text="Groceries made simple" styleClass="sidebar-footer" wrapText="true"/>
         </children>
-      </GridPane>
+      </VBox>
 
-      <HBox spacing="8" alignment="CENTER_LEFT">
-        <HBox spacing="8">
-          <Button fx:id="addItemButton" text="Add Item" styleClass="primary"/>
-          <Button fx:id="removeItemButton" text="Remove Item" styleClass="primary"/>
-        </HBox>
-        <Region HBox.hgrow="ALWAYS"/>
-        <HBox spacing="8" alignment="CENTER_RIGHT">
-          <Button fx:id="backToFridgeButton" text="Back to Fridge" styleClass="primary"/>
-          <Button fx:id="addAllToInventoryButton" text="Add All to Inventory" styleClass="primary"/>
-          <Button fx:id="removeAllButton" text="Remove All" styleClass="primary"/>
-        </HBox>
-      </HBox>
+      <VBox spacing="12" styleClass="panel workspace" HBox.hgrow="ALWAYS">
+        <padding><Insets top="18" right="18" bottom="18" left="18"/></padding>
 
-      <ListView fx:id="shoppingList" VBox.vgrow="ALWAYS"/>
-    </VBox>
+        <!-- Menu button (visible when sidebar is collapsed) -->
+        <HBox spacing="8" styleClass="workspace-toolbar">
+          <Button fx:id="showSidebarButton" text="☰" styleClass="menu-button" onAction="#onToggleSidebar" visible="false" managed="false"/>
+        </HBox>
+
+        <GridPane hgap="8" vgap="6">
+          <columnConstraints>
+            <ColumnConstraints prefWidth="400" hgrow="ALWAYS"/>
+            <ColumnConstraints prefWidth="150" hgrow="ALWAYS"/>
+            <ColumnConstraints prefWidth="200"/>
+          </columnConstraints>
+          <rowConstraints>
+            <RowConstraints vgrow="NEVER"/>
+          </rowConstraints>
+          <children>
+            <TextField fx:id="itemField" promptText="Item name" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+            <Spinner fx:id="quantitySpinner" editable="true" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+          </children>
+        </GridPane>
+
+        <HBox spacing="8" alignment="CENTER_LEFT">
+          <HBox spacing="8">
+            <Button fx:id="addItemButton" text="Add Item" styleClass="primary"/>
+            <Button fx:id="removeItemButton" text="Remove Item" styleClass="primary"/>
+          </HBox>
+          <Region HBox.hgrow="ALWAYS"/>
+          <HBox spacing="8" alignment="CENTER_RIGHT">
+            <Button fx:id="addAllToInventoryButton" text="Add All to Inventory" styleClass="primary"/>
+            <Button fx:id="removeAllButton" text="Remove All" styleClass="primary"/>
+          </HBox>
+        </HBox>
+
+        <ListView fx:id="shoppingList" VBox.vgrow="ALWAYS"/>
+      </VBox>
+    </HBox>
   </children>
 </AnchorPane>
