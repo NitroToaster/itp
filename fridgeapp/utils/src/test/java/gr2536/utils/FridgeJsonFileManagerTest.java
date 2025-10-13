@@ -59,5 +59,25 @@ public class FridgeJsonFileManagerTest {
         Assertions.assertTrue(checkEqualFridges(original, loaded),
                 "Fridge loaded from JSON should be identical to the original");
     }
+
+    @Test
+    void testReadNonExistentFile() {
+        Fridge loaded = fileManager.readFridgeData("nonexistent.json");
+        Assertions.assertTrue(loaded.listItems().isEmpty(), 
+        "Fridge loaded from non-existent file should be empty");
+    }
+
+    @Test
+    void testReadEmptyFile() throws Exception {
+        File emptyFile = new File(TEST_FILE);
+        emptyFile.getParentFile().mkdirs();
+        emptyFile.createNewFile();
+
+        Fridge loaded = fileManager.readFridgeData(TEST_FILE);
+        Assertions.assertTrue(loaded.listItems().isEmpty(),
+                "Fridge loaded from empty file should be empty");
+    }
+
+
 }
 
