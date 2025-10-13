@@ -48,8 +48,8 @@ public class FridgeJsonFileManagerTest {
     @Test
     void testSaveAndReadFridgeData() {
         Fridge original = new Fridge();
-        Item milk = new Item("Milk", 1, LocalDate.of(2025, 10, 20));
-        Item eggs = new Item("Eggs", 12, LocalDate.of(2025, 10, 25));
+        Item milk = new Item("Milk", 1, LocalDate.now().plusDays(5));
+        Item eggs = new Item("Eggs", 12, LocalDate.now().plusDays(8));
         original.add(milk);
         original.add(eggs);
 
@@ -87,6 +87,21 @@ public class FridgeJsonFileManagerTest {
         Assertions.assertThrows(RuntimeException.class, () -> {
             fileManager.readFridgeData(TEST_FILE);
         }, "Reading from a file with invalid JSON should throw RuntimeException");
+    }
+
+    @Test
+    void testCreatesParentDirectoriesWhenSaving() {
+        String nestedFile = "testdata/nested/dir/fridge_test.json";
+        Fridge fridge = new Fridge();
+        fridge.add(new Item("Juice", 1, LocalDate.now().plusDays(3)));
+
+        fileManager.saveFridgeData(fridge, nestedFile);
+
+        File savedFile = new File(nestedFile);
+        Assertions.assertTrue(savedFile.exists(), "File should be created in nested directories");
+
+        savedFile.delete();
+        savedFile.getParentFile().delete();
     }
 
 
