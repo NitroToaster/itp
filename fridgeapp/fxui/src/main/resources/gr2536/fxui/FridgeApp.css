@@ -54,6 +54,49 @@
   -fx-background-color: transparent;
 }
 
+/* =================== Header Bar =================== */
+.header-bar {
+  -fx-background-color: -panel-1;
+  -fx-background-radius: 10px;
+  -fx-border-color: -line;
+  -fx-border-radius: 10px;
+  -fx-padding: 10px 12px;
+  -fx-spacing: 8px;
+}
+
+.header-title {
+  -fx-text-fill: -text;
+  -fx-font-size: 14px;
+  -fx-font-weight: 700;
+  -fx-opacity: 0.9;
+  -fx-min-width: 60px;
+}
+
+/* Search row styling */
+.search-row {
+  -fx-spacing: 10px;
+}
+
+/* Actions row styling */
+.actions-row {
+  -fx-spacing: 10px;
+}
+
+/* Compact header controls */
+.header-bar .text-field,
+.header-bar .combo-box-base,
+.header-bar .button {
+  -fx-padding: 6px 10px;
+}
+
+/* De-emphasize secondary header actions */
+.header-bar .button {
+  -fx-font-size: 12px;
+}
+.header-bar .button.primary {
+  -fx-font-weight: 600;
+}
+
 .sidebar-toggle-btn {
   -fx-background-color: transparent;
   -fx-text-fill: -muted;
