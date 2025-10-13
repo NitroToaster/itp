@@ -103,8 +103,5 @@ public class FridgeJsonFileManagerTest {
         savedFile.delete();
         savedFile.getParentFile().delete();
     }
-
-
-
 }
 
