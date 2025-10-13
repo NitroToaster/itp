@@ -78,6 +78,18 @@ public class FridgeJsonFileManagerTest {
                 "Fridge loaded from empty file should be empty");
     }
 
+    @Test
+    void testSaveToInvalidJson() throws Exception {
+        File badFile = new File(TEST_FILE);
+        badFile.getParentFile().mkdirs();
+        java.nio.file.Files.writeString(badFile.toPath(), "Not a JSON content");
+
+        Assertions.assertThrows(RuntimeException.class, () -> {
+            fileManager.readFridgeData(TEST_FILE);
+        }, "Reading from a file with invalid JSON should throw RuntimeException");
+    }
+
+
 
 }
 
