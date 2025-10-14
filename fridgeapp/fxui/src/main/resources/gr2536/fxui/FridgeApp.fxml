@@ -56,9 +56,6 @@
             <ComboBox fx:id="searchModeCombo" promptText="Match" prefWidth="130">
               <tooltip><Tooltip text="How to match item names"/></tooltip>
             </ComboBox>
-            <ComboBox fx:id="searchSortCombo" promptText="Sort" prefWidth="150">
-              <tooltip><Tooltip text="Order results by name, date, or quantity"/></tooltip>
-            </ComboBox>
             <Button fx:id="searchButton" text="Search" styleClass="primary">
               <tooltip><Tooltip text="Click to search now"/></tooltip>
             </Button>
@@ -118,6 +115,21 @@
         <!-- Fridge Items List -->
         <VBox spacing="6" VBox.vgrow="ALWAYS">
           <Label text="Fridge Items" styleClass="section-header"/>
+          
+          <!-- Column Headers with Sort Arrows -->
+          <HBox spacing="10" styleClass="list-header">
+            <Label fx:id="nameHeaderLabel" text="Name" styleClass="list-header-column" onMouseClicked="#onSortByName" HBox.hgrow="ALWAYS">
+              <tooltip><Tooltip text="Click to sort by name"/></tooltip>
+            </Label>
+            <Label fx:id="quantityHeaderLabel" text="Quantity" styleClass="list-header-column" onMouseClicked="#onSortByQuantity" prefWidth="80">
+              <tooltip><Tooltip text="Click to sort by quantity"/></tooltip>
+            </Label>
+            <Label fx:id="expirationHeaderLabel" text="Expiration" styleClass="list-header-column" onMouseClicked="#onSortByExpiration" prefWidth="120">
+              <tooltip><Tooltip text="Click to sort by expiration date"/></tooltip>
+            </Label>
+            <Region prefWidth="150"/>
+          </HBox>
+          
           <ListView fx:id="fridgeList" VBox.vgrow="ALWAYS"/>
         </VBox>
       </VBox>

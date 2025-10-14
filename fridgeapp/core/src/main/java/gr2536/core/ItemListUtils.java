@@ -41,6 +41,11 @@ class ItemListUtils {
             .comparing(Item::getExpirationDate, Comparator.nullsLast(Comparator.reverseOrder()))
             .thenComparing(i -> i.getName().toLowerCase(Locale.ROOT));
 
+    public static final Comparator<Item> BY_QUANTITY_ASC = Comparator
+            .comparingInt(Item::getQuantity)
+            .thenComparing(i -> i.getName().toLowerCase(Locale.ROOT))
+            .thenComparing(Item::getExpirationDate, Comparator.nullsLast(Comparator.naturalOrder()));
+
     public static final Comparator<Item> BY_QUANTITY_DESC = Comparator
             .comparingInt(Item::getQuantity).reversed()
             .thenComparing(i -> i.getName().toLowerCase(Locale.ROOT))
