@@ -141,6 +141,56 @@ public class Fridge implements ItemList {
                 .collect(Collectors.toUnmodifiableList());
     }
 
+    /**
+     * Searches items using all match modes (CONTAINS, PREFIX, EXACT) for the name query.
+     * This method creates a custom search that matches items using any of the three modes.
+     */
+    public List<Item> searchWithAllModes(String nameQuery, Integer minQuantity, Integer maxQuantity, 
+                                       LocalDate expirationFrom, LocalDate expirationUntil, 
+                                       boolean includeUnknownExpiration, SearchSort sort) {
+        SearchCriteria c = new SearchCriteria(nameQuery, null, minQuantity, maxQuantity, 
+                                            expirationFrom, expirationUntil, includeUnknownExpiration, sort);
+        return listItems().stream()
+                .filter(item -> {
+                    // Custom name matching using all modes
+                    if (nameQuery != null && !nameQuery.trim().isEmpty()) {
+                        if (!ItemListUtils.nameMatchesAll(item.getName(), nameQuery)) {
+                            return false;
+                        }
+                    }
+                    
+                    // Apply other filters
+                    if (minQuantity != null && item.getQuantity() < minQuantity) {
+                        return false;
+                    }
+                    if (maxQuantity != null && item.getQuantity() > maxQuantity) {
+                        return false;
+                    }
+                    
+                    LocalDate itemExpiration = item.getExpirationDate();
+                    if (expirationFrom != null) {
+                        if (itemExpiration == null && !includeUnknownExpiration) {
+                            return false;
+                        }
+                        if (itemExpiration != null && itemExpiration.isBefore(expirationFrom)) {
+                            return false;
+                        }
+                    }
+                    if (expirationUntil != null) {
+                        if (itemExpiration == null && !includeUnknownExpiration) {
+                            return false;
+                        }
+                        if (itemExpiration != null && itemExpiration.isAfter(expirationUntil)) {
+                            return false;
+                        }
+                    }
+                    
+                    return true;
+                })
+                .sorted(ItemFilters.comparator(c))
+                .collect(Collectors.toUnmodifiableList());
+    }
+
     public List<Item> filterByQuantityAtLeast(int min) {
         if (min < 0) {
             throw new IllegalArgumentException("min must be >= 0");

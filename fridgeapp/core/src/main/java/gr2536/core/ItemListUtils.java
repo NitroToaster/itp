@@ -63,6 +63,20 @@ class ItemListUtils {
             case CONTAINS -> n.contains(q);
         };
     }
+
+    /**
+     * Checks if a name matches a query using all match modes (CONTAINS, PREFIX, EXACT).
+     * Returns true if the name matches using any of the three modes.
+     */
+    static boolean nameMatchesAll(String name, String query) {
+        if (query == null) return true;
+        String n = name == null ? "" : name.trim().toLowerCase(Locale.ROOT);
+        String q = query.trim().toLowerCase(Locale.ROOT);
+        if (q.isEmpty()) return true;
+        
+        // Try all three match modes
+        return n.equals(q) || n.startsWith(q) || n.contains(q);
+    }
 }
 
 // Package-private record for grouping items by name
