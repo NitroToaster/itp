@@ -652,6 +652,21 @@ public class FridgeAppController {
             dialog.getDialogPane().getStylesheets().add(
                 getClass().getResource("/gr2536/fxui/FridgeApp.css").toExternalForm()
             );
+            // Remove default header region to avoid an extra bar at the top
+            pane.setHeaderText(null);
+            // Ensure dialog is properly sized and modal to the app window
+            dialog.setResizable(false);
+            pane.setPrefWidth(420);
+            pane.setMaxWidth(Region.USE_COMPUTED_SIZE);
+            pane.setMinSize(Region.USE_PREF_SIZE, Region.USE_PREF_SIZE);
+            pane.setMaxSize(Region.USE_PREF_SIZE, Region.USE_COMPUTED_SIZE);
+            Window owner = root != null && root.getScene() != null ? root.getScene().getWindow() : null;
+            if (owner instanceof Stage s) {
+                dialog.initOwner(s);
+                dialog.initModality(javafx.stage.Modality.WINDOW_MODAL);
+            }
+            // Remove native title bar to avoid white OS chrome and rely on styled header
+            dialog.initStyle(javafx.stage.StageStyle.UNDECORATED);
 
             dialog.setResultConverter(bt ->
                 bt != null && (bt == ButtonType.OK || bt.getButtonData() == ButtonBar.ButtonData.OK_DONE)
