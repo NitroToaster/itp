@@ -70,9 +70,6 @@ public class FridgeAppController {
     /** Search text field for filtering by name. */
     @FXML
     private TextField searchField;
-    /** Combo box for selecting name match mode. */
-    @FXML
-    private ComboBox<NameMatchMode> searchModeCombo;
     /** Button to execute search. */
     @FXML
     private Button searchButton;
@@ -325,14 +322,9 @@ public class FridgeAppController {
 
 
     /**
-     * Sets up search-related controls: combo boxes and button bindings.
-     * Populates the search mode combo box with enum values.
+     * Sets up search-related controls and button bindings.
      */
     private void setupSearchControls() {
-        // Populate search mode combo box
-        searchModeCombo.setItems(FXCollections.observableArrayList(NameMatchMode.values()));
-        searchModeCombo.setValue(NameMatchMode.CONTAINS);
-
         // Bind button states
         BooleanBinding searchFieldEmpty = Bindings.createBooleanBinding(
             () -> searchField.getText() == null || searchField.getText().trim().isEmpty(),
@@ -431,7 +423,6 @@ public class FridgeAppController {
     private void onSearch(ActionEvent e) {
         try {
             String query = searchField.getText().trim();
-            NameMatchMode mode = searchModeCombo.getValue();
 
             // Build search criteria with current filter values (if any)
             Integer minQty = filterMinQuantitySpinner.getValue() > 0 
@@ -444,15 +435,17 @@ public class FridgeAppController {
             LocalDate untilDate = filterExpirationUntilPicker.getValue();
             boolean includeUnknown = filterIncludeUnknownCheck.isSelected();
 
-            // Create search criteria
-            currentSearchCriteria = new SearchCriteria(
-                query, mode, minQty, maxQty, fromDate, untilDate, includeUnknown, currentSort
+            // Execute search using all match modes and update view
+            List<Item> results = getFridge().searchWithAllModes(
+                query, minQty, maxQty, fromDate, untilDate, includeUnknown, currentSort
             );
-
-            // Execute search and update view
-            List<Item> results = getFridge().search(currentSearchCriteria);
             items.setAll(results);
             isFiltered = true;
+            
+            // Store search criteria for refreshFromModel
+            currentSearchCriteria = new SearchCriteria(
+                query, NameMatchMode.CONTAINS, minQty, maxQty, fromDate, untilDate, includeUnknown, currentSort
+            );
 
         } catch (IllegalArgumentException exception) {
             showError("Invalid search criteria", exception);
@@ -469,7 +462,6 @@ public class FridgeAppController {
     private void onClearSearch(ActionEvent e) {
         // Reset search fields
         searchField.clear();
-        searchModeCombo.setValue(NameMatchMode.CONTAINS);
 
         // Reset filter fields
         filterMinQuantitySpinner.getValueFactory().setValue(0);
@@ -542,17 +534,18 @@ public class FridgeAppController {
             // Preserve search query if exists
             String query = searchField.getText().trim();
             String searchQuery = query.isEmpty() ? null : query;
-            NameMatchMode mode = searchModeCombo.getValue();
 
-            // Create search criteria with filters
-            currentSearchCriteria = new SearchCriteria(
-                searchQuery, mode, minQty, maxQty, fromDate, untilDate, includeUnknown, currentSort
+            // Execute filter using all match modes and update view
+            List<Item> results = getFridge().searchWithAllModes(
+                searchQuery, minQty, maxQty, fromDate, untilDate, includeUnknown, currentSort
             );
-
-            // Execute filter and update view
-            List<Item> results = getFridge().search(currentSearchCriteria);
             items.setAll(results);
             isFiltered = true;
+            
+            // Store search criteria for refreshFromModel
+            currentSearchCriteria = new SearchCriteria(
+                searchQuery, NameMatchMode.CONTAINS, minQty, maxQty, fromDate, untilDate, includeUnknown, currentSort
+            );
 
         } catch (IllegalArgumentException exception) {
             showError("Invalid filter criteria", exception);
@@ -781,24 +774,21 @@ public class FridgeAppController {
      */
     private void refreshFromModel() {
         if (isFiltered && currentSearchCriteria != null) {
-            // Re-apply current search/filter criteria with updated sort
-            SearchCriteria updatedCriteria = new SearchCriteria(
+            // Re-apply current search/filter criteria with updated sort using all match modes
+            items.setAll(getFridge().searchWithAllModes(
                 currentSearchCriteria.nameQuery(),
-                currentSearchCriteria.nameMode(),
                 currentSearchCriteria.minQuantity(),
                 currentSearchCriteria.maxQuantity(),
                 currentSearchCriteria.expirationFrom(),
                 currentSearchCriteria.expirationUntil(),
                 currentSearchCriteria.includeUnknownExpiration(),
                 currentSort  // Use current sort instead of the one in criteria
-            );
-            items.setAll(getFridge().search(updatedCriteria));
+            ));
         } else if (currentSort != SearchSort.DEFAULT) {
             // Apply sort to all items without other filters
-            SearchCriteria sortOnlyCriteria = new SearchCriteria(
-                null, null, null, null, null, null, true, currentSort
-            );
-            items.setAll(getFridge().search(sortOnlyCriteria));
+            items.setAll(getFridge().searchWithAllModes(
+                null, null, null, null, null, true, currentSort
+            ));
         } else {
             // Show all items in default order
             items.setAll(getFridge().listItems());

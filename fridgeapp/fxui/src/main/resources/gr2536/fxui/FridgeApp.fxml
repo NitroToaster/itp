@@ -53,9 +53,6 @@
             <TextField fx:id="searchField" promptText="Search items..." prefWidth="200" HBox.hgrow="ALWAYS">
               <tooltip><Tooltip text="Type to search your fridge"/></tooltip>
             </TextField>
-            <ComboBox fx:id="searchModeCombo" promptText="Match" prefWidth="130">
-              <tooltip><Tooltip text="How to match item names"/></tooltip>
-            </ComboBox>
             <Button fx:id="searchButton" text="Search" styleClass="primary">
               <tooltip><Tooltip text="Click to search now"/></tooltip>
             </Button>

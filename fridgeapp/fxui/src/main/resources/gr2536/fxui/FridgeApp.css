@@ -1,7 +1,7 @@
 /* =================== Theme =================== */
 .root {
   -fx-font-size: 13px;
-  -fx-font-family: "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  -fx-font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
 
   /* Neutral darks */
   -bg-900:  #121212;  /* page */
@@ -172,11 +172,8 @@
 
 .sidebar-heading {
   -fx-font-size: 11px;
-  -fx-text-fill: -muted;
-  -fx-font-weight: 600;
   -fx-text-fill: rgba(255,255,255,0.65);
-  -fx-letter-spacing: 0.8px;
-  -fx-text-transform: uppercase;
+  -fx-font-weight: 600;
 }
 
 .sidebar-group {
