@@ -10,6 +10,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.*;
+
 public class FridgeTest {
 
     private Fridge fridge;
@@ -67,19 +71,17 @@ public class FridgeTest {
         IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, 
         () -> fridge.remove("Milk", -1));
         assertEquals("quantityToRemove must be > 0", ex.getMessage());
+        assertEquals(0, fridge.remove("Nonexistent", 1));
 
         fridge.remove("Milk", 1);
-
         assertEquals(List.of(new Item("Butter", 2, LocalDate.of(2025, 9, 21))), fridge.listItems());
 
         fridge.add(item2);
-
         fridge.remove("Milk", 1);
-
         assertEquals(List.of(
             new Item("Butter", 2, LocalDate.of(2025, 9, 21)), 
             new Item("Milk", 1, LocalDate.of(2025, 9, 20))), 
-            fridge.listItems());
+            fridge.listItems());   
     }
 
 
@@ -89,6 +91,7 @@ public class FridgeTest {
     @Test
     public void getQuantityTest(){
         assertEquals(1, (int) fridge.getQuantity("Milk"));
+        assertEquals(0, fridge.getQuantity("NonexistentItem"));
 
         fridge.add(item2);
 
@@ -96,7 +99,7 @@ public class FridgeTest {
     }
         
 
-    // ---------------- SEARCH/FILTER TESTS ----------------
+    //SEARCH/FILTER TESTS
 
     @Test
     public void searchByNameContainsTest() {
@@ -128,7 +131,7 @@ public class FridgeTest {
         ), result);
     }
 
-    // ---------------- FILTER TESTS ----------------
+    //FILTER TESTS
 
     /**
      * Tests filterByQuantityAtLeast method with various minimum values.
@@ -446,5 +449,89 @@ public class FridgeTest {
         List<Item> result = fridge.search(criteria);
         assertEquals(1, result.size());
         assertEquals("Milk", result.get(0).getName());
+    }
+
+    /**
+     * Tests that constructor with file manager enables saving on modifications.
+     */
+    @Test
+    public void constructorWithFileManagerTest() {
+        FridgeFileManager mockFileManager = mock(FridgeFileManager.class);
+        Fridge fridgeWithMock = new Fridge(mockFileManager, "mockfile.json");
+
+        Item item = new Item("Eggs", 12, LocalDate.now().plusDays(14));
+        fridgeWithMock.add(item);
+
+        verify(mockFileManager, times(1)).saveFridgeData(fridgeWithMock, "mockfile.json");  
+    
+    }
+    /**
+    * Tests that setting a file manager enables saving on modifications.
+    */
+    @Test
+    public void setFileManagerTest() {
+        Fridge fridge = new Fridge();
+        FridgeFileManager mockFileManager = mock(FridgeFileManager.class);
+
+        fridge.setFileManager(mockFileManager, "testfile.json");
+        fridge.add(new Item("Bread", 1, LocalDate.now().plusDays(2)));
+        verify(mockFileManager, times(1)).saveFridgeData(fridge, "testfile.json");
+    }
+
+    /**
+     * Tests that getItemsForSerialization returns a correct copy of the items.
+     */
+    @Test
+    public void getItemsForSerializationTest() {
+        fridge.add(new Item("Juice", 1, LocalDate.now().plusDays(3)));
+        List<Item> serializedItems = fridge.getItemsForSerialization();
+
+        assertEquals(3, serializedItems.size());
+        assertTrue(serializedItems.containsAll(fridge.listItems()));
+
+        serializedItems.clear();
+        assertEquals(3, fridge.listItems().size(), 
+            "Modifying serialized items should not affect fridge contents");
+    }
+
+    /**
+     * Tests that setItemsFromSerialization correctly populates the fridge without triggering saves.
+     */
+    @Test
+    public void setItemsForSerializationTest() {
+        FridgeFileManager mockFileManager = mock(FridgeFileManager.class);
+        Fridge fridgeWithMock = new Fridge(mockFileManager, "mockfile.json");
+
+        List<Item> itemsToSet = List.of(
+            new Item("Yogurt", 2, LocalDate.now().plusDays(5)),
+            new Item("Cheese", 1, LocalDate.now().plusDays(10))
+        );
+
+        fridgeWithMock.setItemsFromSerialization(itemsToSet);
+
+        List<Item> fridgeItems = fridgeWithMock.listItems();
+        assertEquals(2, fridgeItems.size());
+        assertTrue(fridgeItems.stream().anyMatch(i -> i.getName().equals("Yogurt") && i.getQuantity() == 2));
+        assertTrue(fridgeItems.stream().anyMatch(i -> i.getName().equals("Cheese") && i.getQuantity() == 1));
+
+        verify(mockFileManager, never()).saveFridgeData(any(), anyString());
+    }
+
+    @Test
+    public void saveMethodTest() {
+        FridgeFileManager mockFileManager = mock(FridgeFileManager.class);
+        Fridge fridgeWithMock = new Fridge(mockFileManager, "mockfile.json");
+
+        fridgeWithMock.add(new Item("Apples", 5, LocalDate.now().plusDays(7)));
+        verify(mockFileManager, times(1)).saveFridgeData(fridgeWithMock, "mockfile.json");
+
+        fridgeWithMock.remove("Apples", 2);
+        verify(mockFileManager, times(2)).saveFridgeData(fridgeWithMock, "mockfile.json");
+
+        Fridge fridgeNoManager = new Fridge(null, "file.json");
+        fridgeNoManager.add(new Item("Bananas", 3, LocalDate.now().plusDays(4)));
+        
+        Fridge fridgeNoFile = new Fridge(mockFileManager, null);
+        fridgeNoFile.add(new Item("Grapes", 4, LocalDate.now().plusDays(6)));
     }
 }
