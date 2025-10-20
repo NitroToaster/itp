@@ -41,6 +41,11 @@ class ItemListUtils {
             .comparing(Item::getExpirationDate, Comparator.nullsLast(Comparator.reverseOrder()))
             .thenComparing(i -> i.getName().toLowerCase(Locale.ROOT));
 
+    public static final Comparator<Item> BY_QUANTITY_ASC = Comparator
+            .comparingInt(Item::getQuantity)
+            .thenComparing(i -> i.getName().toLowerCase(Locale.ROOT))
+            .thenComparing(Item::getExpirationDate, Comparator.nullsLast(Comparator.naturalOrder()));
+
     public static final Comparator<Item> BY_QUANTITY_DESC = Comparator
             .comparingInt(Item::getQuantity).reversed()
             .thenComparing(i -> i.getName().toLowerCase(Locale.ROOT))
@@ -57,6 +62,20 @@ class ItemListUtils {
             case PREFIX -> n.startsWith(q);
             case CONTAINS -> n.contains(q);
         };
+    }
+
+    /**
+     * Checks if a name matches a query using all match modes (CONTAINS, PREFIX, EXACT).
+     * Returns true if the name matches using any of the three modes.
+     */
+    static boolean nameMatchesAll(String name, String query) {
+        if (query == null) return true;
+        String n = name == null ? "" : name.trim().toLowerCase(Locale.ROOT);
+        String q = query.trim().toLowerCase(Locale.ROOT);
+        if (q.isEmpty()) return true;
+        
+        // Try all three match modes
+        return n.equals(q) || n.startsWith(q) || n.contains(q);
     }
 }
 

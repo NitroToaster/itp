@@ -42,6 +42,8 @@ import javafx.scene.layout.Region;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import javafx.stage.Window;
+import javafx.animation.PauseTransition;
+import javafx.util.Duration;
 
 import gr2536.core.FridgeFileManager;
 import gr2536.utils.FridgeJsonFileManager;
@@ -68,18 +70,23 @@ public class FridgeAppController {
     /** Search text field for filtering by name. */
     @FXML
     private TextField searchField;
-    /** Combo box for selecting name match mode. */
-    @FXML
-    private ComboBox<NameMatchMode> searchModeCombo;
-    /** Combo box for selecting sort order. */
-    @FXML
-    private ComboBox<SearchSort> searchSortCombo;
     /** Button to execute search. */
     @FXML
     private Button searchButton;
     /** Button to clear search and show all items. */
     @FXML
     private Button clearSearchButton;
+    
+    // ========== List header columns ==========
+    /** Column header for Name with sort arrow. */
+    @FXML
+    private Label nameHeaderLabel;
+    /** Column header for Quantity with sort arrow. */
+    @FXML
+    private Label quantityHeaderLabel;
+    /** Column header for Expiration with sort arrow. */
+    @FXML
+    private Label expirationHeaderLabel;
 
     // ========== Filter controls ==========
     /** Spinner for minimum quantity filter. */
@@ -124,6 +131,14 @@ public class FridgeAppController {
     @FXML
     private Button showSidebarButton;
 
+    /** Collapsible filters panel container. */
+    @FXML
+    private javafx.scene.layout.VBox filtersPanel;
+
+    /** Toggle button for filters in header. */
+    @FXML
+    private Button toggleFiltersButton;
+
     /** Sidebar container node for toggling. */
     @FXML
     private javafx.scene.layout.VBox sidebar;
@@ -149,6 +164,11 @@ public class FridgeAppController {
      * Flag to track if we're in filtered/search view.
      */
     private boolean isFiltered = false;
+    
+    /**
+     * Current sort order for the list.
+     */
+    private SearchSort currentSort = SearchSort.DEFAULT;
 
     /**
      * Initializes the UI: delegates setup to helper methods for clarity and
@@ -165,9 +185,20 @@ public class FridgeAppController {
         setupButtonEvents();
         setupBackgroundClickHandling();
         setupListViewSelectionClearing();
+        setupLiveSearch();
         refreshFromModel();
     }
 
+    /** Enables debounced live search on searchField text changes. */
+    private void setupLiveSearch() {
+        if (searchField == null) return;
+        PauseTransition debounce = new PauseTransition(Duration.millis(250));
+        searchField.textProperty().addListener((obs, oldV, newV) -> {
+            debounce.stop();
+            debounce.setOnFinished(e -> onSearch(new ActionEvent()));
+            debounce.playFromStart();
+        });
+    }
 
     /** Initializes the Fridge domain model and file manager. */
     private void setupFridge() {
@@ -291,18 +322,9 @@ public class FridgeAppController {
 
 
     /**
-     * Sets up search-related controls: combo boxes and button bindings.
-     * Populates the search mode and sort combo boxes with enum values.
+     * Sets up search-related controls and button bindings.
      */
     private void setupSearchControls() {
-        // Populate search mode combo box
-        searchModeCombo.setItems(FXCollections.observableArrayList(NameMatchMode.values()));
-        searchModeCombo.setValue(NameMatchMode.CONTAINS);
-
-        // Populate search sort combo box
-        searchSortCombo.setItems(FXCollections.observableArrayList(SearchSort.values()));
-        searchSortCombo.setValue(SearchSort.DEFAULT);
-
         // Bind button states
         BooleanBinding searchFieldEmpty = Bindings.createBooleanBinding(
             () -> searchField.getText() == null || searchField.getText().trim().isEmpty(),
@@ -321,6 +343,9 @@ public class FridgeAppController {
         // Wire events
         searchButton.setOnAction(this::onSearch);
         clearSearchButton.setOnAction(this::onClearSearch);
+        
+        // Initialize list header sort indicators
+        updateSortIndicators();
     }
 
     /**
@@ -398,8 +423,6 @@ public class FridgeAppController {
     private void onSearch(ActionEvent e) {
         try {
             String query = searchField.getText().trim();
-            NameMatchMode mode = searchModeCombo.getValue();
-            SearchSort sort = searchSortCombo.getValue();
 
             // Build search criteria with current filter values (if any)
             Integer minQty = filterMinQuantitySpinner.getValue() > 0 
@@ -412,15 +435,17 @@ public class FridgeAppController {
             LocalDate untilDate = filterExpirationUntilPicker.getValue();
             boolean includeUnknown = filterIncludeUnknownCheck.isSelected();
 
-            // Create search criteria
-            currentSearchCriteria = new SearchCriteria(
-                query, mode, minQty, maxQty, fromDate, untilDate, includeUnknown, sort
+            // Execute search using all match modes and update view
+            List<Item> results = getFridge().searchWithAllModes(
+                query, minQty, maxQty, fromDate, untilDate, includeUnknown, currentSort
             );
-
-            // Execute search and update view
-            List<Item> results = getFridge().search(currentSearchCriteria);
             items.setAll(results);
             isFiltered = true;
+            
+            // Store search criteria for refreshFromModel
+            currentSearchCriteria = new SearchCriteria(
+                query, NameMatchMode.CONTAINS, minQty, maxQty, fromDate, untilDate, includeUnknown, currentSort
+            );
 
         } catch (IllegalArgumentException exception) {
             showError("Invalid search criteria", exception);
@@ -437,8 +462,6 @@ public class FridgeAppController {
     private void onClearSearch(ActionEvent e) {
         // Reset search fields
         searchField.clear();
-        searchModeCombo.setValue(NameMatchMode.CONTAINS);
-        searchSortCombo.setValue(SearchSort.DEFAULT);
 
         // Reset filter fields
         filterMinQuantitySpinner.getValueFactory().setValue(0);
@@ -446,6 +469,10 @@ public class FridgeAppController {
         filterExpirationFromPicker.setValue(null);
         filterExpirationUntilPicker.setValue(null);
         filterIncludeUnknownCheck.setSelected(true);
+
+        // Reset sort to default
+        currentSort = SearchSort.DEFAULT;
+        updateSortIndicators();
 
         // Clear criteria and refresh
         currentSearchCriteria = null;
@@ -507,18 +534,18 @@ public class FridgeAppController {
             // Preserve search query if exists
             String query = searchField.getText().trim();
             String searchQuery = query.isEmpty() ? null : query;
-            NameMatchMode mode = searchModeCombo.getValue();
-            SearchSort sort = searchSortCombo.getValue();
 
-            // Create search criteria with filters
-            currentSearchCriteria = new SearchCriteria(
-                searchQuery, mode, minQty, maxQty, fromDate, untilDate, includeUnknown, sort
+            // Execute filter using all match modes and update view
+            List<Item> results = getFridge().searchWithAllModes(
+                searchQuery, minQty, maxQty, fromDate, untilDate, includeUnknown, currentSort
             );
-
-            // Execute filter and update view
-            List<Item> results = getFridge().search(currentSearchCriteria);
             items.setAll(results);
             isFiltered = true;
+            
+            // Store search criteria for refreshFromModel
+            currentSearchCriteria = new SearchCriteria(
+                searchQuery, NameMatchMode.CONTAINS, minQty, maxQty, fromDate, untilDate, includeUnknown, currentSort
+            );
 
         } catch (IllegalArgumentException exception) {
             showError("Invalid filter criteria", exception);
@@ -591,6 +618,24 @@ public class FridgeAppController {
     }
 
     /**
+     * Toggles the filters panel visibility from the header.
+     * Keeps layout tidy by binding both managed and visible together.
+     * @param e action event from the Filters button
+     */
+    @FXML
+    private void onToggleFilters(ActionEvent e) {
+        if (filtersPanel == null) {
+            return;
+        }
+        boolean isVisible = filtersPanel.isVisible();
+        filtersPanel.setVisible(!isVisible);
+        filtersPanel.setManaged(!isVisible);
+        if (toggleFiltersButton != null) {
+            toggleFiltersButton.setText(isVisible ? "Filters" : "Hide Filters");
+        }
+    }
+
+    /**
      * Shows the Add Item dialog.
      *
      * @return the created {@link Item}, or {@code null} if the dialog was cancelled
@@ -607,6 +652,21 @@ public class FridgeAppController {
             dialog.getDialogPane().getStylesheets().add(
                 getClass().getResource("/gr2536/fxui/FridgeApp.css").toExternalForm()
             );
+            // Remove default header region to avoid an extra bar at the top
+            pane.setHeaderText(null);
+            // Ensure dialog is properly sized and modal to the app window
+            dialog.setResizable(false);
+            pane.setPrefWidth(420);
+            pane.setMaxWidth(Region.USE_COMPUTED_SIZE);
+            pane.setMinSize(Region.USE_PREF_SIZE, Region.USE_PREF_SIZE);
+            pane.setMaxSize(Region.USE_PREF_SIZE, Region.USE_COMPUTED_SIZE);
+            Window owner = root != null && root.getScene() != null ? root.getScene().getWindow() : null;
+            if (owner instanceof Stage s) {
+                dialog.initOwner(s);
+                dialog.initModality(javafx.stage.Modality.WINDOW_MODAL);
+            }
+            // Remove native title bar to avoid white OS chrome and rely on styled header
+            dialog.initStyle(javafx.stage.StageStyle.UNDECORATED);
 
             dialog.setResultConverter(bt ->
                 bt != null && (bt == ButtonType.OK || bt.getButtonData() == ButtonBar.ButtonData.OK_DONE)
@@ -724,15 +784,28 @@ public class FridgeAppController {
 
     /**
      * Refreshes ListView with items from the fridge.
-     * If search/filter is active, re-applies the current criteria.
-     * Otherwise, shows all items in default order.
+     * If search/filter is active, re-applies the current criteria with updated sort.
+     * Otherwise, shows all items with current sort order applied.
      */
     private void refreshFromModel() {
         if (isFiltered && currentSearchCriteria != null) {
-            // Re-apply current search/filter criteria
-            items.setAll(getFridge().search(currentSearchCriteria));
+            // Re-apply current search/filter criteria with updated sort using all match modes
+            items.setAll(getFridge().searchWithAllModes(
+                currentSearchCriteria.nameQuery(),
+                currentSearchCriteria.minQuantity(),
+                currentSearchCriteria.maxQuantity(),
+                currentSearchCriteria.expirationFrom(),
+                currentSearchCriteria.expirationUntil(),
+                currentSearchCriteria.includeUnknownExpiration(),
+                currentSort  // Use current sort instead of the one in criteria
+            ));
+        } else if (currentSort != SearchSort.DEFAULT) {
+            // Apply sort to all items without other filters
+            items.setAll(getFridge().searchWithAllModes(
+                null, null, null, null, null, true, currentSort
+            ));
         } else {
-            // Show all items
+            // Show all items in default order
             items.setAll(getFridge().listItems());
         }
     }
@@ -853,5 +926,124 @@ public class FridgeAppController {
             break;
         }
     }
-    } 
+    }
+    
+    // ========== Sort Handlers ==========
+    
+    /**
+     * Handles clicking on the Name column header to cycle through sort modes.
+     * Cycles: DEFAULT → NAME_ASC → NAME_DESC → DEFAULT
+     *
+     * @param e MouseEvent from the name header label
+     */
+    @FXML
+    private void onSortByName(javafx.scene.input.MouseEvent e) {
+        if (currentSort == SearchSort.DEFAULT || currentSort == SearchSort.EXPIRATION_ASC 
+            || currentSort == SearchSort.EXPIRATION_DESC || currentSort == SearchSort.QUANTITY_DESC) {
+            currentSort = SearchSort.NAME_ASC;
+        } else if (currentSort == SearchSort.NAME_ASC) {
+            currentSort = SearchSort.NAME_DESC;
+        } else {
+            currentSort = SearchSort.DEFAULT;
+        }
+        updateSortIndicators();
+        refreshFromModel();
+    }
+    
+    /**
+     * Handles clicking on the Quantity column header to cycle through sort modes.
+     * Cycles: DEFAULT → QUANTITY_ASC → QUANTITY_DESC → DEFAULT
+     *
+     * @param e MouseEvent from the quantity header label
+     */
+    @FXML
+    private void onSortByQuantity(javafx.scene.input.MouseEvent e) {
+        if (currentSort == SearchSort.DEFAULT || currentSort == SearchSort.NAME_ASC 
+            || currentSort == SearchSort.NAME_DESC || currentSort == SearchSort.EXPIRATION_ASC 
+            || currentSort == SearchSort.EXPIRATION_DESC) {
+            currentSort = SearchSort.QUANTITY_ASC;
+        } else if (currentSort == SearchSort.QUANTITY_ASC) {
+            currentSort = SearchSort.QUANTITY_DESC;
+        } else {
+            currentSort = SearchSort.DEFAULT;
+        }
+        updateSortIndicators();
+        refreshFromModel();
+    }
+    
+    /**
+     * Handles clicking on the Expiration column header to cycle through sort modes.
+     * Cycles: DEFAULT → EXPIRATION_ASC → EXPIRATION_DESC → DEFAULT
+     *
+     * @param e MouseEvent from the expiration header label
+     */
+    @FXML
+    private void onSortByExpiration(javafx.scene.input.MouseEvent e) {
+        if (currentSort == SearchSort.DEFAULT || currentSort == SearchSort.NAME_ASC 
+            || currentSort == SearchSort.NAME_DESC || currentSort == SearchSort.QUANTITY_DESC) {
+            currentSort = SearchSort.EXPIRATION_ASC;
+        } else if (currentSort == SearchSort.EXPIRATION_ASC) {
+            currentSort = SearchSort.EXPIRATION_DESC;
+        } else {
+            currentSort = SearchSort.DEFAULT;
+        }
+        updateSortIndicators();
+        refreshFromModel();
+    }
+    
+    /**
+     * Updates the visual indicators (arrows) on column headers based on current sort.
+     * Adds ↑ for ascending, ↓ for descending, and highlights the active column.
+     */
+    private void updateSortIndicators() {
+        // Reset all headers
+        nameHeaderLabel.getStyleClass().remove("sorted");
+        quantityHeaderLabel.getStyleClass().remove("sorted");
+        expirationHeaderLabel.getStyleClass().remove("sorted");
+        
+        // Set text based on current sort
+        switch (currentSort) {
+            case NAME_ASC:
+                nameHeaderLabel.setText("Name ↑");
+                nameHeaderLabel.getStyleClass().add("sorted");
+                quantityHeaderLabel.setText("Quantity");
+                expirationHeaderLabel.setText("Expiration");
+                break;
+            case NAME_DESC:
+                nameHeaderLabel.setText("Name ↓");
+                nameHeaderLabel.getStyleClass().add("sorted");
+                quantityHeaderLabel.setText("Quantity");
+                expirationHeaderLabel.setText("Expiration");
+                break;
+            case QUANTITY_ASC:
+                nameHeaderLabel.setText("Name");
+                quantityHeaderLabel.setText("Quantity ↑");
+                quantityHeaderLabel.getStyleClass().add("sorted");
+                expirationHeaderLabel.setText("Expiration");
+                break;
+            case QUANTITY_DESC:
+                nameHeaderLabel.setText("Name");
+                quantityHeaderLabel.setText("Quantity ↓");
+                quantityHeaderLabel.getStyleClass().add("sorted");
+                expirationHeaderLabel.setText("Expiration");
+                break;
+            case EXPIRATION_ASC:
+                nameHeaderLabel.setText("Name");
+                quantityHeaderLabel.setText("Quantity");
+                expirationHeaderLabel.setText("Expiration ↑");
+                expirationHeaderLabel.getStyleClass().add("sorted");
+                break;
+            case EXPIRATION_DESC:
+                nameHeaderLabel.setText("Name");
+                quantityHeaderLabel.setText("Quantity");
+                expirationHeaderLabel.setText("Expiration ↓");
+                expirationHeaderLabel.getStyleClass().add("sorted");
+                break;
+            default:
+                nameHeaderLabel.setText("Name");
+                quantityHeaderLabel.setText("Quantity");
+                expirationHeaderLabel.setText("Expiration");
+                break;
+        }
+    }
 }

@@ -57,6 +57,7 @@ final class ItemFilters {
             case NAME_DESC -> ItemListUtils.BY_NAME_DESC;
             case EXPIRATION_ASC -> ItemListUtils.BY_EXPIRATION_ASC;
             case EXPIRATION_DESC -> ItemListUtils.BY_EXPIRATION_DESC;
+            case QUANTITY_ASC -> ItemListUtils.BY_QUANTITY_ASC;
             case QUANTITY_DESC -> ItemListUtils.BY_QUANTITY_DESC;
         };
     }

@@ -1,7 +1,7 @@
 /* =================== Theme =================== */
 .root {
   -fx-font-size: 13px;
-  -fx-font-family: "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  -fx-font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
 
   /* Neutral darks */
   -bg-900:  #121212;  /* page */
@@ -52,6 +52,49 @@
 .workspace-toolbar {
   -fx-padding: 0 0 6 0;
   -fx-background-color: transparent;
+}
+
+/* =================== Header Bar =================== */
+.header-bar {
+  -fx-background-color: -panel-1;
+  -fx-background-radius: 10px;
+  -fx-border-color: -line;
+  -fx-border-radius: 10px;
+  -fx-padding: 10px 12px;
+  -fx-spacing: 8px;
+}
+
+.header-title {
+  -fx-text-fill: -text;
+  -fx-font-size: 14px;
+  -fx-font-weight: 700;
+  -fx-opacity: 0.9;
+  -fx-min-width: 60px;
+}
+
+/* Search row styling */
+.search-row {
+  -fx-spacing: 10px;
+}
+
+/* Actions row styling */
+.actions-row {
+  -fx-spacing: 10px;
+}
+
+/* Compact header controls */
+.header-bar .text-field,
+.header-bar .combo-box-base,
+.header-bar .button {
+  -fx-padding: 6px 10px;
+}
+
+/* De-emphasize secondary header actions */
+.header-bar .button {
+  -fx-font-size: 12px;
+}
+.header-bar .button.primary {
+  -fx-font-weight: 600;
 }
 
 .sidebar-toggle-btn {
@@ -129,11 +172,8 @@
 
 .sidebar-heading {
   -fx-font-size: 11px;
-  -fx-text-fill: -muted;
-  -fx-font-weight: 600;
   -fx-text-fill: rgba(255,255,255,0.65);
-  -fx-letter-spacing: 0.8px;
-  -fx-text-transform: uppercase;
+  -fx-font-weight: 600;
 }
 
 .sidebar-group {
@@ -386,16 +426,63 @@
 .button.secondary:armed { -fx-background-color: rgba(255,255,255,0.12); }
 .button.danger:armed    { -fx-background-color: -danger-24; }
 
-/* Make Add bold */
-#addButton { -fx-font-weight: bold; }
+/* Make Add button prominent with filled style */
+#addButton {
+  -fx-font-weight: bold;
+  -fx-background-color: -accent;
+  -fx-text-fill: #0B0E11;
+  -fx-border-color: -accent;
+  -fx-font-size: 13px;
+  -fx-padding: 8px 18px;
+}
+
+#addButton:hover {
+  -fx-background-color: derive(-accent, 15%);
+  -fx-border-color: derive(-accent, 15%);
+  -fx-effect: dropshadow(gaussian, rgba(44,186,206,0.40), 14, 0.40, 0, 0);
+  -fx-cursor: hand;
+}
+
+#addButton:armed {
+  -fx-background-color: derive(-accent, -10%);
+}
+
+/* =================== List Header =================== */
+.list-header {
+  -fx-background-color: -panel-2;
+  -fx-background-radius: 8px 8px 0 0;
+  -fx-border-color: -line;
+  -fx-border-width: 1px 1px 0 1px;
+  -fx-border-radius: 8px 8px 0 0;
+  -fx-padding: 8px 10px;
+}
+
+.list-header-column {
+  -fx-text-fill: -muted;
+  -fx-font-size: 12px;
+  -fx-font-weight: 600;
+  -fx-cursor: hand;
+  -fx-padding: 4px 8px;
+  -fx-background-radius: 6px;
+}
+
+.list-header-column:hover {
+  -fx-background-color: rgba(255,255,255,0.04);
+  -fx-text-fill: -text;
+}
+
+.list-header-column.sorted {
+  -fx-text-fill: -accent;
+  -fx-background-color: -accent-12;
+}
 
 /* =================== ListView =================== */
 .list-view {
   -fx-background-color: -panel-1;
   -fx-background-insets: 0;
-  -fx-background-radius: 10px;
+  -fx-background-radius: 0 0 10px 10px;
   -fx-border-color: -line;
-  -fx-border-radius: 10px;
+  -fx-border-radius: 0 0 10px 10px;
   -fx-border-insets: 0;
   -fx-padding: 8px;
   -fx-control-inner-background: -panel-1;
@@ -585,37 +672,64 @@
   -fx-border-radius: 12px;
 }
 
+/* Ensure content area has proper background */
+.dialog-pane > .content {
+  -fx-background-color: -panel-1;
+  -fx-padding: 16px;
+}
+
+.dialog-pane > .header {
+  -fx-background-color: -panel-2;
+  -fx-background-radius: 12px 12px 0 0;
+  -fx-padding: 12px 16px;
+}
+
+.dialog-pane > .header .label {
+  -fx-text-fill: -text;
+  -fx-font-weight: 700;
+  -fx-font-size: 14px;
+}
+
+.dialog-pane > .button-bar {
+  -fx-background-color: -panel-2;
+  -fx-background-radius: 0 0 12px 12px;
+  -fx-padding: 12px 16px;
+}
+
 /* Flatten dialog buttons and override Modena defaults */
 .dialog-pane .button {
   -fx-background-insets: 0;
   -fx-border-insets: 0;
   -fx-background-radius: 8px;
   -fx-border-radius: 8px;
+  -fx-padding: 8px 16px;
+  -fx-font-weight: 600;
 }
-.dialog-pane .button:default {   /* neutralize default blue */
-  -fx-background-color: transparent;
-  -fx-border-color: -line;
-}
-.button.primary:default {        /* ensure primary still pops */
+
+.dialog-pane .button:default {
   -fx-background-color: -accent-12;
   -fx-border-color: -accent-90;
   -fx-text-fill: -accent;
 }
+
+.dialog-pane .button:default:hover {
+  -fx-background-color: -accent-24;
+  -fx-border-color: -accent;
+  -fx-cursor: hand;
+}
+
 /* Treat Cancel like secondary if not classed */
 .dialog-pane .button:cancel {
   -fx-background-color: transparent;
   -fx-text-fill: -root-white;
   -fx-border-color: rgba(255,255,255,0.70);
 }
+
 .dialog-pane .button:cancel:hover {
   -fx-background-color: rgba(255,255,255,0.08);
   -fx-border-color: rgba(255,255,255,0.95);
+  -fx-cursor: hand;
 }
-
-.dialog-pane:header *.header-panel { -fx-background-color: -panel-2; -fx-background-radius: 12px 12px 0 0; -fx-padding: 10px; }
-.dialog-pane:header .label { -fx-text-fill: -text; -fx-font-weight: 700; }
-.dialog-pane .content { -fx-padding: 10px; }
-.dialog-pane .button-bar .button { -fx-background-radius: 8px; -fx-border-radius: 8px; }
 
 .tooltip {
   -fx-background-color: -panel-2;

@@ -6,6 +6,7 @@ public enum SearchSort {
     NAME_DESC,
     EXPIRATION_ASC,
     EXPIRATION_DESC,
+    QUANTITY_ASC,
     QUANTITY_DESC
 }
 

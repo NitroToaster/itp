@@ -45,8 +45,6 @@ public class FridgeAppControllerTest extends ApplicationTest {
     private Button removeAllButton;
     private ListView<Item> fridgeList;
     private TextField searchField;
-    private ComboBox<NameMatchMode> searchModeCombo;
-    private ComboBox<SearchSort> searchSortCombo;
     private Button searchButton;
     private Button clearSearchButton;
     private Spinner<Integer> filterMinQuantitySpinner;
@@ -79,8 +77,6 @@ public class FridgeAppControllerTest extends ApplicationTest {
         // removeAllButton = lookup("#removeAllButton").query();
         fridgeList = lookup("#fridgeList").query();
         searchField = lookup("#searchField").query();
-        searchModeCombo = lookup("#searchModeCombo").query();
-        searchSortCombo = lookup("#searchSortCombo").query();
         searchButton = lookup("#searchButton").query();
         clearSearchButton = lookup("#clearSearchButton").query();
         filterMinQuantitySpinner = lookup("#filterMinQuantitySpinner").query();
@@ -484,20 +480,12 @@ public class FridgeAppControllerTest extends ApplicationTest {
         dialogAddButton = lookup(".button").lookup("Add").queryButton();
         clickOn(dialogAddButton);
 
-        // Test CONTAINS mode (should find both)
+        // Test search (should find both Apple and Pineapple using all match modes)
         interact(() -> {
             searchField.setText("apple");
-            searchModeCombo.setValue(NameMatchMode.CONTAINS);
         });
         clickOn(searchButton);
-        interact(() -> assertEquals(2, fridgeList.getItems().size(), "CONTAINS should find both"));
-
-        // Test PREFIX mode (should find only Apple)
-        interact(() -> {
-            searchModeCombo.setValue(NameMatchMode.PREFIX);
-        });
-        clickOn(searchButton);
-        interact(() -> assertEquals(1, fridgeList.getItems().size(), "PREFIX should find only Apple"));
+        interact(() -> assertEquals(2, fridgeList.getItems().size(), "Search should find both Apple and Pineapple"));
     }
 
     /**
@@ -530,11 +518,8 @@ public class FridgeAppControllerTest extends ApplicationTest {
         dialogAddButton = lookup(".button").lookup("Add").queryButton();
         clickOn(dialogAddButton);
 
-        // Sort by name ascending
-        interact(() -> {
-            searchSortCombo.setValue(SearchSort.NAME_ASC);
-        });
-        clickOn(applyFilterButton); // Use apply filter to trigger sort without search text
+        // Sort by name ascending using column header
+        clickOn("#nameHeaderLabel"); // Click the name column header to sort ascending
 
         interact(() -> {
             assertEquals("Apple", fridgeList.getItems().get(0).getName(), "Apple should be first");
@@ -787,21 +772,6 @@ public class FridgeAppControllerTest extends ApplicationTest {
 
     // ========== Initialization Tests ==========
 
-    /**
-     * Tests combo boxes are populated correctly.
-     */
-    @Test
-    public void testComboBoxesPopulated() {
-        interact(() -> {
-            assertNotNull(searchModeCombo.getItems(), "Search mode combo should be populated");
-            assertEquals(3, searchModeCombo.getItems().size(), "Should have 3 name match modes");
-            assertEquals(NameMatchMode.CONTAINS, searchModeCombo.getValue(), "Default should be CONTAINS");
-
-            assertNotNull(searchSortCombo.getItems(), "Search sort combo should be populated");
-            assertEquals(6, searchSortCombo.getItems().size(), "Should have 6 sort options");
-            assertEquals(SearchSort.DEFAULT, searchSortCombo.getValue(), "Default should be DEFAULT");
-        });
-    }
 
     /**
      * Tests filter spinners are initialized correctly.
