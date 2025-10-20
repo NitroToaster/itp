@@ -1,9 +1,10 @@
 {
   "dependencies": {
-    "eslint": "^9.37.0"
+    "axios": "^1.12.2",
+    "eslint": "^9.37.0",
+    "react-router-dom": "^7.9.4"
   },
   "scripts": {
     "test": "jest"
   }
 }
-
