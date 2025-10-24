@@ -59,6 +59,28 @@ export async function addItemApi(item) {
   }
 }
 
+export async function updateItemApi(id, item) {
+  if (useMock) {
+    await delay(200);
+    const items = loadStore();
+    const index = items.findIndex(i => i.id === id);
+    if (index === -1) {
+      throw new Error('Item not found');
+    }
+    // Update the item while preserving the id
+    items[index] = { ...items[index], ...item, id };
+    saveStore(items);
+    return items[index];
+  }
+  try {
+    const res = await api.put(`/items/${id}`, item);
+    return res.data;
+  } catch (e) {
+    console.error('updateItemApi error', e);
+    throw e;
+  }
+}
+
 export async function removeItemApi(id) {
   if (useMock) {
     await delay(150);
