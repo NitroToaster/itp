@@ -145,8 +145,10 @@ public class ShoppingListTest {
                 fridge.listItems());
     }
 
-    // ---------------- SEARCH/FILTER TESTS ----------------
-
+    
+    /*
+     * Tests the searchByNameExact method
+     */
     @Test
     public void searchByNameExactTest() {
         sList.add(item1);
@@ -165,6 +167,9 @@ public class ShoppingListTest {
         assertEquals(sList.listItems(), nullSearchResult);
     }
 
+    /*
+     * Tests the filterByMinQuantity method
+     */
     @Test
     public void filterByMinQuantityTest() {
         IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> sList.filterByQuantityAtLeast(-1));
@@ -180,6 +185,9 @@ public class ShoppingListTest {
         assertEquals(List.of(new Item("Fish", 5, LocalDate.of(2025, 10, 3))), result);
     }
 
+    /*
+     * Tests the expirationUntil method with includeUnknown flag set to true and false
+     */
     @Test
     public void expirationUntilIncludeUnknownTest() {
         sList.add(item1);
@@ -195,6 +203,9 @@ public class ShoppingListTest {
         ), result);
     }
 
+    /*
+     * Tests the expirationUntil method with includeUnknown flag set to false
+     */
     @Test
     public void expirationUntilExcludeUnknownTest() {
         sList.add(item1);
@@ -207,6 +218,9 @@ public class ShoppingListTest {
         assertEquals(List.of(new Item("Egg", 2, LocalDate.of(2025, 9, 30))), result);
     }
 
+    /*
+     * Tests the filterByQuantityAtMost method
+     */
     @Test
     public void filterByQuantityAtMostTest() {
         IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> sList.filterByQuantityAtMost(-5));
@@ -224,6 +238,9 @@ public class ShoppingListTest {
                 ), result);
     }
 
+    /*
+     * Tests the filterByExpirationFrom and filterByExpirationUntil methods
+     */
     @Test
     public void filterByExpirationFromAndUntilTest() {
         sList.add(item1);
