@@ -40,6 +40,11 @@ public class ItemTest {
             new Item("Milk", -1, LocalDate.of(2025, 9, 20))
             );
             assertEquals(ex2.getMessage(), "quantity must be > 0");
+        
+        IllegalArgumentException exNull = assertThrows(IllegalArgumentException.class, () -> 
+            new Item(null, 1, LocalDate.of(2025, 9, 20))
+            );
+            assertEquals(exNull.getMessage(), "name must be non-empty");
     }
 
     @Test
@@ -75,6 +80,15 @@ public class ItemTest {
         assertEquals(1, item1.getQuantity());
     }
 
-    
+    @Test
+    public void toStringTest(){
+        Item item1 = new Item("Butter", 3, LocalDate.of(2025, 11, 15));
+        String str = item1.toString();
+
+        assertTrue(str.contains("Butter"));
+        assertTrue(str.contains("3"));
+        assertTrue(str.contains("2025-11-15"));
+        assertTrue(str.startsWith("Item{"));
+    }
 
 }
