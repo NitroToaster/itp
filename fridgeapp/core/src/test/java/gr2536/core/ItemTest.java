@@ -3,6 +3,7 @@ package gr2536.core;
 import java.time.LocalDate;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.Test;
@@ -33,22 +34,33 @@ public class ItemTest {
             new Item("", 1, LocalDate.of(2025, 9, 20))
             );
             assertEquals(ex1.getMessage(), "name must be non-empty");
+
         IllegalArgumentException ex2 = assertThrows(IllegalArgumentException.class, () -> 
             new Item("Milk", -1, LocalDate.of(2025, 9, 20))
             );
             assertEquals(ex2.getMessage(), "quantity must be > 0");
     }
 
-    /**
-     * Checks basic functionality of boolean equals method.
-     */
     @Test
-    public void booleanTest(){
-        Item item1 = new Item("Milk", 1, LocalDate.of(2025, 9, 20));
-        Item item2 = new Item("Milk", 1, LocalDate.of(2025, 9, 20));
+    public void equalsAndHashCodeTest(){
+        Item item1 = new Item("Milk", 1, LocalDate.now().plusDays(5));
+        Item item2 = new Item("milk", 1, LocalDate.now().plusDays(5));
+        Item item3 = new Item("Milk", 2, LocalDate.now().plusDays(5));
+        Item item4 = new Item("Milk", 1, null);
+        Item item5 = new Item("Egg", 1, LocalDate.now().plusDays(5));
+
         assertTrue(item1.equals(item2));
+        assertTrue(!item1.equals(item3));
+        assert(!item1.equals(item4));
+        assertTrue(!item1.equals(item5));
+        assertTrue(!item1.equals(null));
+        assertTrue(!item1.equals("string"));
+        assertTrue(item1.equals(item1));
+        
+        assertEquals(item1.hashCode(), item2.hashCode());
+        assertNotEquals(item1.hashCode(), item3.hashCode());
     }
 
     
-    
+
 }
