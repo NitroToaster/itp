@@ -1,20 +1,21 @@
 import React, { useEffect, useState } from 'react';
-import './styles/App.css';
-import FridgePage from './pages/Fridge';
-import ShoppingListPage from './pages/ShoppingList';
+import './assets/styles/App.css';
+import FridgePage from './features/fridge/Fridge';
+import ShoppingListPage from './features/shopping/ShoppingList';
+import AppShell from './components/layout/AppShell';
 
 // fridge API
-import { fetchItems, addItemApi, removeItemApi } from './config/FridgeService';
-// shopping API (ensure file is src/config/ShoppingListService.js)
+import { fetchItems, addItemApi, removeItemApi, updateItemApi } from './services/api/FridgeService';
+// shopping API
 import {
   fetchShoppingItems,
   markBought,
   addShoppingItem,
   removeShoppingItem,
-} from './config/ShoppingListService';
+} from './services/api/ShoppingListService';
 
 function App() {
-  const [view, setView] = useState('fridge'); // 'fridge' | 'shopping'
+  const [view, setView] = useState('fridge');
 
   // fridge state
   const [fridgeItems, setFridgeItems] = useState([]);
@@ -39,10 +40,15 @@ function App() {
   }
 
   useEffect(() => {
-    // load both sets on start
     loadFridgeItems();
     loadShoppingItems();
   }, []);
+
+  // Handle data import - reload both lists
+  const handleDataLoaded = async () => {
+    await loadFridgeItems();
+    await loadShoppingItems();
+  };
 
   // fridge handlers
   const handleAdd = async item => {
@@ -61,6 +67,15 @@ function App() {
     } catch (e) {
       console.error('Failed to remove fridge item', e);
       await loadFridgeItems();
+    }
+  };
+
+  const handleUpdate = async item => {
+    try {
+      await updateItemApi(item.id, item);
+      await loadFridgeItems();
+    } catch (e) {
+      console.error('Failed to update fridge item', e);
     }
   };
 
@@ -87,7 +102,6 @@ function App() {
   const handleMarkBought = async id => {
     try {
       await markBought(id);
-      // refresh both lists: shopping list lost an item, fridge gained one
       await Promise.all([loadShoppingItems(), loadFridgeItems()]);
     } catch (e) {
       console.error('Failed to mark bought', e);
@@ -95,35 +109,30 @@ function App() {
   };
 
   return (
-    <div className="App">
-      <nav className="top-nav">
-        <button onClick={() => setView('fridge')}>Fridge</button>
-        <button onClick={() => setView('shopping')}>Shopping List</button>
-      </nav>
+    <AppShell onNavigate={setView} onDataLoaded={handleDataLoaded}>
+      {view === 'fridge' && (
+        <FridgePage
+          items={fridgeItems}
+          loading={fridgeLoading}
+          onAdd={handleAdd}
+          onRemove={handleRemove}
+          onUpdate={handleUpdate}
+          reload={loadFridgeItems}
+          onOpenShopping={() => setView('shopping')}
+        />
+      )}
 
-      <main>
-        {view === 'fridge' && (
-          <FridgePage
-            items={fridgeItems}
-            loading={fridgeLoading}
-            onAdd={handleAdd}
-            onRemove={handleRemove}
-            reload={loadFridgeItems}
-          />
-        )}
-
-        {view === 'shopping' && (
-          <ShoppingListPage
-            items={shoppingItems}
-            loading={shoppingLoading}
-            onRemove={handleRemoveShopping}
-            onAdd={handleAddShopping}
-            onMarkBought={handleMarkBought}
-            reload={loadShoppingItems}
-          />
-        )}
-      </main>
-    </div>
+      {view === 'shopping' && (
+        <ShoppingListPage
+          items={shoppingItems}
+          loading={shoppingLoading}
+          onRemove={handleRemoveShopping}
+          onAdd={handleAddShopping}
+          onMarkBought={handleMarkBought}
+          reload={loadShoppingItems}
+        />
+      )}
+    </AppShell>
   );
 }
 
