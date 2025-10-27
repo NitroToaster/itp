@@ -83,23 +83,27 @@ public class ShoppingListTest {
      */
     @Test
     public void removeFromListTest() {
-        sList.add(item2);
+        int result = sList.remove("Milk", 1);
+        assertEquals(0, result);
 
+        sList.add(item2);
         IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
                 () -> sList.remove("Egg", -1));
         assertEquals("quantityToRemove must be > 0", ex.getMessage());
 
         sList.remove("Egg", 1);
-
         assertEquals(List.of(new Item("Egg", 1, LocalDate.of(2025, 9, 30))), sList.listItems());
 
         sList.add(item1);
-
         sList.remove("Egg", 1);
-
         assertEquals(List.of(
                 new Item("Cheese", 1, null)),
                 sList.listItems());
+
+        sList.add(item2);
+        int remaining = sList.remove("Egg", 5);
+        assertEquals(0, remaining);
+        assertEquals(List.of(new Item("Cheese", 1, null)), sList.listItems());
     }
 
     /**
@@ -107,12 +111,12 @@ public class ShoppingListTest {
      */
     @Test
     public void getQuantityTest() {
-        sList.add(item3);
+        assertEquals(0, sList.getQuantity("Unknown"));
 
+        sList.add(item3);
         assertEquals(4, sList.getQuantity("Fish"));
 
         sList.add(item5);
-
         assertEquals(5, sList.getQuantity("Fish"));
     }
 
@@ -156,10 +160,16 @@ public class ShoppingListTest {
                 new Item("Egg", 2, LocalDate.of(2025, 9, 30)),
                 new Item("Egg", 1, LocalDate.of(2025, 10, 14))
         ), result);
+
+        List<Item> nullSearchResult = sList.search(null);
+        assertEquals(sList.listItems(), nullSearchResult);
     }
 
     @Test
     public void filterByMinQuantityTest() {
+        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> sList.filterByQuantityAtLeast(-1));
+        assertEquals("min must be >= 0", ex.getMessage());
+
         sList.add(item1);
         sList.add(item2);
         sList.add(item3);
@@ -196,4 +206,49 @@ public class ShoppingListTest {
         List<Item> result = sList.search(new SearchCriteria(null, null, null, null, null, LocalDate.of(2025, 9, 30), false, null));
         assertEquals(List.of(new Item("Egg", 2, LocalDate.of(2025, 9, 30))), result);
     }
+
+    @Test
+    public void filterByQuantityAtMostTest() {
+        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> sList.filterByQuantityAtMost(-5));
+        assertEquals("max must be >= 0", ex.getMessage());
+
+        sList.add(item1);
+        sList.add(item2);
+        sList.add(item3);
+        sList.add(item5);
+
+        List<Item> result = sList.filterByQuantityAtMost(2);
+        assertEquals(List.of(
+                new Item("Cheese", 1, null),
+                new Item("Egg", 2, LocalDate.of(2025, 9, 30))
+                ), result);
+    }
+
+    @Test
+    public void filterByExpirationFromAndUntilTest() {
+        sList.add(item1);
+        sList.add(item2);
+        sList.add(item3);
+        sList.add(item4);
+        sList.add(item5);
+
+        List<Item> fromResult = sList.filterByExpirationFrom(LocalDate.of(2025, 10, 1));
+        assertEquals(List.of(
+                new Item("Cheese", 1, null),
+                new Item("Egg", 1, LocalDate.of(2025, 10, 14)),
+                new Item("Fish", 5, LocalDate.of(2025, 10, 3))
+                ), fromResult);
+
+        List<Item> untilResult  = sList.filterByExpirationUntil(LocalDate.of(2025, 10, 3));
+        assertEquals(List.of(
+                new Item("Cheese", 1, null),
+                new Item("Egg", 2, LocalDate.of(2025, 9, 30)),
+                new Item("Fish", 5, LocalDate.of(2025, 10, 3))
+        ), untilResult);
+
+        assertThrows(NullPointerException.class, () -> sList.filterByExpirationFrom(null));
+        assertThrows(NullPointerException.class, () -> sList.filterByExpirationUntil(null));
+    }
+
+
 }
