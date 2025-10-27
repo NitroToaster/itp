@@ -4,6 +4,7 @@ import java.time.LocalDate;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.Test;
@@ -59,6 +60,19 @@ public class ItemTest {
         
         assertEquals(item1.hashCode(), item2.hashCode());
         assertNotEquals(item1.hashCode(), item3.hashCode());
+    }
+
+    @Test
+    public void withQuantityTest(){
+        Item item1 = new Item("Cheese", 1, LocalDate.now().plusDays(7));
+        Item item2 = item1.withQuantity(5);
+
+        assertEquals("Cheese", item2.getName());
+        assertEquals(5, item2.getQuantity());
+        assertEquals(LocalDate.now().plusDays(7),item2.getExpirationDate());
+
+        assertNotSame(item1, item2);
+        assertEquals(1, item1.getQuantity());
     }
 
     
