@@ -47,6 +47,9 @@ public class ItemTest {
             assertEquals(exNull.getMessage(), "name must be non-empty");
     }
 
+    /*
+     * Tests equals and hashCode methods.
+     */
     @Test
     public void equalsAndHashCodeTest(){
         Item item1 = new Item("Milk", 1, LocalDate.now().plusDays(5));
@@ -67,6 +70,9 @@ public class ItemTest {
         assertNotEquals(item1.hashCode(), item3.hashCode());
     }
 
+    /*
+     * Tests the withQuantity method.
+     */
     @Test
     public void withQuantityTest(){
         Item item1 = new Item("Cheese", 1, LocalDate.now().plusDays(7));
@@ -80,6 +86,9 @@ public class ItemTest {
         assertEquals(1, item1.getQuantity());
     }
 
+    /*
+     * Tests the toString method.
+     */
     @Test
     public void toStringTest(){
         Item item1 = new Item("Butter", 3, LocalDate.of(2025, 11, 15));
