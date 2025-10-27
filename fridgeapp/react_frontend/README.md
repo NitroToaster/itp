@@ -1,70 +1,106 @@
-# Getting Started with Create React App
+# FridgeApp - React Frontend
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+## App Description
 
-## Available Scripts
+FridgeApp is a web application for managing refrigerator inventory and shopping lists. Users can track items with expiration dates, create shopping lists, and import/export data for backup purposes.
 
-In the project directory, you can run:
+## Project Structure
 
-### `npm start`
+### Assets
+The **assets** folder contains static files like stylesheets.
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+- **styles/App.css** - Global styles and theme configuration
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+### Components
+The **components** folder contains reusable UI components organized by purpose.
 
-### `npm test`
+#### Layout
+- **AppShell.jsx** - Main layout wrapper containing sidebar and content area
+- **Sidebar.jsx** - Navigation sidebar with collapse functionality
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+#### Modals
+- **AddItemModal.jsx** - Modal for adding new fridge items
+- **EditItemModal.jsx** - Modal for editing existing fridge items
+- **AddShoppingItemModal.jsx** - Modal for adding shopping list items
 
-### `npm run build`
+### Features
+The **features** folder contains feature-specific page components.
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+#### Fridge
+- **FridgePage.jsx** - Main fridge interface with search, filter, and item management
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+#### Shopping
+- **ShoppingListPage.jsx** - Shopping list interface with bulk operations
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+### Services
+The **services** folder contains all data handling logic.
 
-### `npm run eject`
+#### Api
+- **fridgeService.js** - CRUD operations for fridge items
+- **shoppingService.js** - CRUD operations for shopping list items
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+- **dataService.js** - Import and export functionality for data backup
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+### More Information
+See [docs/FEATURES.md](docs/FEATURES.md) for detailed feature documentation.
+See [docs/SERVICES.md](docs/SERVICES.md) for service layer documentation.
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+## Technologies and Dependencies
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+- **React:** 18
+- **Node.js:** 14 or higher
+- **npm:** 6.x or higher
 
-## Learn More
+## Features
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+- Add, edit, and remove fridge items
+- Track expiration dates with color-coded indicators
+- Search and filter items
+- Create and manage shopping lists
+- Import data from JSON files
+- Data persistence using localStorage
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+## How to Run the Project
 
-### Code Splitting
+```bash
+cd react_frontend
+npm install
+npm start
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+The application will open at http://localhost:3000
 
-### Analyzing the Bundle Size
+## Data Storage
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+The application uses browser localStorage for data persistence:
 
-### Making a Progressive Web App
+- `fridge_mock_store_v1` - Fridge items
+- `shopping_mock_store_v1` - Shopping list items
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+Data persists across browser sessions but will be cleared if browser data is cleared.
 
-### Advanced Configuration
+## Import Data Format
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+To import data, use the following JSON structure:
 
-### Deployment
+```json
+{
+  "fridgeItems": [
+    {
+      "id": 1,
+      "name": "Milk",
+      "qty": 2,
+      "expiration": "2025-10-30"
+    }
+  ],
+  "shoppingItems": [
+    {
+      "id": 1,
+      "name": "Bread",
+      "qty": 1
+    }
+  ]
+}
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+Click "Load Data" in the sidebar to import a JSON file.
