@@ -1,0 +1,10 @@
+server:
+  port: 8080
+
+fridge:
+  file: ./utils/fridge.json 
+
+spring:
+  mvc:
+    problemdetails:
+      enabled: true

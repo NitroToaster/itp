@@ -12,6 +12,7 @@
     <module>core</module>
     <module>fxui</module>
     <module>utils</module>
+    <module>springboot</module>
   </modules>
 
   <name>fridgeapp</name>
@@ -22,7 +23,49 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <jupiter.version>5.10.2</jupiter.version>
     <jackson.version>2.19.0</jackson.version>
+    <spring-boot.version>3.5.6</spring-boot.version>
+    <springdoc.version>2.8.13</springdoc.version>
   </properties>
+
+  <!-- Import Spring Boot BOM so all modules share managed versions -->
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-dependencies</artifactId>
+        <version>${spring-boot.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+   
+      <dependency>
+        <groupId>com.fasterxml.jackson.core</groupId>
+        <artifactId>jackson-core</artifactId>
+        <version>${jackson.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.fasterxml.jackson.core</groupId>
+        <artifactId>jackson-annotations</artifactId>
+        <version>${jackson.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.fasterxml.jackson.core</groupId>
+        <artifactId>jackson-databind</artifactId>
+        <version>${jackson.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.fasterxml.jackson.datatype</groupId>
+        <artifactId>jackson-datatype-jdk8</artifactId>
+        <version>${jackson.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.fasterxml.jackson.datatype</groupId>
+        <artifactId>jackson-datatype-jsr310</artifactId>
+        <version>${jackson.version}</version>
+      </dependency>
+    </dependencies>
+
+  </dependencyManagement>
 
 
   <dependencies>
@@ -46,37 +89,6 @@
         <scope>test</scope>
     </dependency>
   </dependencies>
-  <!-- Jackson -->
-  <dependencyManagement>
-    <dependencies>
-        <dependency>
-          <groupId>com.fasterxml.jackson.core</groupId>
-          <artifactId>jackson-core</artifactId>
-          <version>${jackson.version}</version>
-        </dependency>
-        <dependency>
-          <groupId>com.fasterxml.jackson.core</groupId>
-          <artifactId>jackson-annotations</artifactId>
-          <version>${jackson.version}</version>
-        </dependency>
-        <dependency>
-          <groupId>com.fasterxml.jackson.core</groupId>
-          <artifactId>jackson-databind</artifactId>
-          <version>${jackson.version}</version>
-        </dependency>
-        <dependency>
-          <groupId>com.fasterxml.jackson.datatype</groupId>
-          <artifactId>jackson-datatype-jdk8</artifactId>
-          <version>${jackson.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.fasterxml.jackson.datatype</groupId>
-            <artifactId>jackson-datatype-jsr310</artifactId>
-            <version>${jackson.version}</version>
-        </dependency>
-    </dependencies>
-  </dependencyManagement>
-
 
   <build>
       <plugins>
@@ -196,8 +208,6 @@
             <failOnError>false</failOnError> 
           </configuration>
         </plugin>
-
-
       </plugins>
   </build>
 </project>
