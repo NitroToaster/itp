@@ -1,7 +1,7 @@
 module gr2536.springboot {
 
     requires gr2536.core;
-    requires gr2536.utils;
+    requires gr2536.data;
 
     requires com.fasterxml.jackson.databind;
     requires com.fasterxml.jackson.core;

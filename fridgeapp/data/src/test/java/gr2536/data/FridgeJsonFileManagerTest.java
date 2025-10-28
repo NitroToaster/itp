@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Assertions;
 
 import gr2536.core.Fridge;
 import gr2536.core.Item;
+import gr2536.data.FridgeJsonFileManager;
 
 public class FridgeJsonFileManagerTest {
 

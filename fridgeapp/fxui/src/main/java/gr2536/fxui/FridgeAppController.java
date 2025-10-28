@@ -46,7 +46,7 @@ import javafx.animation.PauseTransition;
 import javafx.util.Duration;
 
 import gr2536.core.FridgeFileManager;
-import gr2536.utils.FridgeJsonFileManager;
+import gr2536.data.FridgeJsonFileManager;
 
 /**
  * JavaFX controller for the Fridge UI.

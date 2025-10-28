@@ -3,7 +3,7 @@ module gr2536.fxui {
     requires transitive javafx.graphics;
     requires javafx.controls;
     requires javafx.fxml;
-    requires gr2536.utils;
+    requires gr2536.data;
 
     requires transitive gr2536.core;
 

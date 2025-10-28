@@ -3,7 +3,7 @@ package gr2536.springboot;
 import gr2536.core.Fridge;
 import gr2536.core.Item;
 import gr2536.core.ShoppingList;
-import gr2536.utils.FridgeJsonFileManager;
+import gr2536.data.FridgeJsonFileManager;
 import jakarta.annotation.PostConstruct;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
@@ -30,7 +30,7 @@ public class FridgeAppSpringBootController {
     private final FridgeJsonFileManager fileManager = new FridgeJsonFileManager();
 
     /** Location where the fridge JSON will be stored. Configure in application.yml if you like. */
-    @Value("${fridge.file:./data/fridge.json}")
+    @Value("${fridge.file:./utils/fridge.json}")
     private String fridgeFile;
 
     /** In-memory domain objects (Fridge has persistence via file manager; ShoppingList is in-memory). */

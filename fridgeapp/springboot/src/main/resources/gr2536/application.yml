@@ -2,7 +2,7 @@ server:
   port: 8080
 
 fridge:
-  file: ./utils/fridge.json 
+  file: ./data/fridge.json 
 
 spring:
   mvc:
