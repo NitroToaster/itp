@@ -22,7 +22,7 @@
 
         <dependency>
             <groupId>gr2536</groupId>
-            <artifactId>utils</artifactId>
+            <artifactId>data</artifactId>
             <version>1.0-SNAPSHOT</version>
         </dependency>
 
