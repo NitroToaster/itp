@@ -30,7 +30,7 @@ public class FridgeAppSpringBootController {
     private final FridgeJsonFileManager fileManager = new FridgeJsonFileManager();
 
     /** Location where the fridge JSON will be stored. Configure in application.yml if you like. */
-    @Value("${fridge.file:./utils/fridge.json}")
+    @Value("${fridge.file:./data/fridge.json}")
     private String fridgeFile;
 
     /** In-memory domain objects (Fridge has persistence via file manager; ShoppingList is in-memory). */
