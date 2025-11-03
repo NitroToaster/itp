@@ -8,9 +8,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Assertions;
 
-import gr2536.core.Fridge;
-import gr2536.core.Item;
-import gr2536.data.FridgeJsonFileManager;
+import gr2536.core.fridge.Fridge;
+import gr2536.core.item.Item;
 
 public class FridgeJsonFileManagerTest {
 

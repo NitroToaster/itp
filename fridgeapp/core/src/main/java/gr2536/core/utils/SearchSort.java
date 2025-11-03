@@ -1,4 +1,4 @@
-package gr2536.core;
+package gr2536.core.utils;
 
 public enum SearchSort {
     DEFAULT,

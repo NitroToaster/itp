@@ -10,6 +10,13 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import gr2536.core.fridge.Fridge;
+import gr2536.core.fridge.FridgeFileManager;
+import gr2536.core.item.Item;
+import gr2536.core.utils.NameMatchMode;
+import gr2536.core.utils.SearchCriteria;
+import gr2536.core.utils.SearchSort;
+
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;

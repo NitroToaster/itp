@@ -1,14 +1,16 @@
-package gr2536.core;
+package gr2536.core.utils;
 
 import java.time.LocalDate;
 import java.util.Comparator;
 import java.util.function.Predicate;
 
-final class ItemFilters {
+import gr2536.core.item.Item;
+
+public final class ItemFilters {
 
     private ItemFilters() {}
 
-    static Predicate<Item> predicate(SearchCriteria c) {
+    public static Predicate<Item> predicate(SearchCriteria c) {
         if (c == null) return i -> true;
 
         Predicate<Item> p = i -> true;
@@ -47,7 +49,7 @@ final class ItemFilters {
         return p;
     }
 
-    static Comparator<Item> comparator(SearchCriteria c) {
+    public static Comparator<Item> comparator(SearchCriteria c) {
         if (c == null || c.sort() == null || c.sort() == SearchSort.DEFAULT) {
             return ItemListUtils.ITEM_ORDER;
         }

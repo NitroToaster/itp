@@ -10,6 +10,12 @@ import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import gr2536.core.fridge.Fridge;
+import gr2536.core.item.Item;
+import gr2536.core.shoppingList.ShoppingList;
+import gr2536.core.utils.NameMatchMode;
+import gr2536.core.utils.SearchCriteria;
+
 public class ShoppingListTest {
     private Fridge fridge;
     private ShoppingList sList;
