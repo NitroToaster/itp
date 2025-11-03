@@ -2,7 +2,11 @@ server:
   port: 8080
 
 fridge:
-  file: ./data/fridge.json 
+  file: ./data/fridge.json
+
+recipes:
+  mealdb:
+    base-url: https://www.themealdb.com/api/json/v1/1
 
 spring:
   mvc:
