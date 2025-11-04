@@ -1,7 +1,7 @@
 package gr2536.springboot.config;
 
-import gr2536.core.Fridge;
-import gr2536.core.ShoppingList;
+import gr2536.core.fridge.Fridge;
+import gr2536.core.shoppingList.ShoppingList;
 import gr2536.data.FridgeJsonFileManager;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;

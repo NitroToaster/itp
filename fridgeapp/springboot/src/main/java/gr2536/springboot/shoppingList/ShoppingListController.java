@@ -1,6 +1,6 @@
 package gr2536.springboot.shoppingList;
 
-import gr2536.core.Item;
+import gr2536.core.item.Item;
 import gr2536.springboot.fridge.dto.CreateItemRequest;
 import gr2536.springboot.fridge.dto.RemoveResult;
 import gr2536.springboot.shoppingList.dto.AddToFridgeRequest;

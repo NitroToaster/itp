@@ -1,6 +1,6 @@
 package gr2536.springboot.fridge;
 
-import gr2536.core.Item;
+import gr2536.core.item.Item;
 import gr2536.springboot.fridge.dto.CreateItemRequest;
 import gr2536.springboot.fridge.dto.RemoveResult;
 import jakarta.validation.Valid;
