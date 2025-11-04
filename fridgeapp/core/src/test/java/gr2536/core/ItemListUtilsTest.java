@@ -9,6 +9,9 @@ import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
+import gr2536.core.utils.*;
+import gr2536.core.item.Item;
+
 public class ItemListUtilsTest {
 
     /*
