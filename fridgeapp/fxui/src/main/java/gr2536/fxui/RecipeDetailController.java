@@ -1,6 +1,7 @@
 package gr2536.fxui;
 
 import javafx.event.ActionEvent;
+import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -36,15 +37,19 @@ public class RecipeDetailController {
     }
 
     public void load() {
-        try {
-            var d = service.details(recipeId);
+        Task<RecipeModels.RecipeDetails> task = new Task<>() {
+            @Override protected RecipeModels.RecipeDetails call() {
+                return service.details(recipeId);
+            }
+        };
+        task.setOnSucceeded(ev -> {
+            var d = task.getValue();
             titleLabel.setText(d.title());
             if (d.image() != null && !d.image().isBlank()) {
                 imageView.setImage(new Image(d.image(), true));
             }
             int totalIng = d.ingredients() == null ? 0 : d.ingredients().size();
             metaLabel.setText(String.format("%s • %s • You have %d of %d", nullSafe(d.category()), nullSafe(d.area()), Math.max(0, totalIng - computeMissingNames(d).size()), totalIng));
-            // Compare with fridge
             var fridge = FridgeService.getFridge();
             missingNamesLower.clear();
             var items = d.ingredients().stream().map(i -> {
@@ -54,8 +59,6 @@ public class RecipeDetailController {
                 return name + (i.measure() == null || i.measure().isBlank() ? "" : " - " + i.measure());
             }).toList();
             ingredientsList.getItems().setAll(items);
-
-            // Cell styling for have/missing
             ingredientsList.setCellFactory(lv -> new javafx.scene.control.ListCell<>() {
                 @Override protected void updateItem(String text, boolean empty) {
                     super.updateItem(text, empty);
@@ -72,17 +75,19 @@ public class RecipeDetailController {
                 }
             });
             instructionsArea.setText(d.instructions());
-
             if (hideAvailableCheck != null) {
                 hideAvailableCheck.selectedProperty().addListener((obs, was, isNow) -> applyHideAvailable());
             }
-        } catch (Exception e) {
+        });
+        task.setOnFailed(ev -> {
+            Throwable e = task.getException();
             Alert a = new Alert(Alert.AlertType.ERROR);
             a.setTitle("Error");
             a.setHeaderText("Failed to load recipe");
-            a.setContentText(String.valueOf(e.getMessage()));
+            a.setContentText(String.valueOf(e == null ? "Unknown error" : e.getMessage()));
             a.showAndWait();
-        }
+        });
+        new Thread(task, "recipe-detail-load").start();
     }
 
     private String nullSafe(String s) { return s == null ? "" : s; }
@@ -120,19 +125,9 @@ public class RecipeDetailController {
     @FXML
     private void onBack(ActionEvent e) {
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/gr2536/fxui/Recipe.fxml"));
-            Parent recipeRoot = loader.load();
-            Scene scene = new Scene(recipeRoot);
-            scene.getStylesheets().add(getClass().getResource("/gr2536/fxui/FridgeApp.css").toExternalForm());
-            Stage stage = (Stage) root.getScene().getWindow();
-            stage.setScene(scene);
-            stage.setTitle("Recipes");
+            UiUtil.switchScene(root, "/gr2536/fxui/Recipe.fxml", "Recipes");
         } catch (Exception ex) {
-            Alert a = new Alert(Alert.AlertType.ERROR);
-            a.setTitle("Navigation Error");
-            a.setHeaderText("Could not load Recipes view");
-            a.setContentText(String.valueOf(ex.getMessage()));
-            a.showAndWait();
+            UiUtil.showError("Navigation Error", "Could not load Recipes view", String.valueOf(ex.getMessage()));
         }
     }
 

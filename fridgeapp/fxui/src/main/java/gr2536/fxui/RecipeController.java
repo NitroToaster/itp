@@ -4,6 +4,7 @@ import java.util.Objects;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.stream.Collectors;
+import javafx.concurrent.Task;
 
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -43,6 +44,8 @@ public class RecipeController {
     @FXML private javafx.scene.control.ComboBox<String> areaBox;
     @FXML private javafx.scene.control.ProgressIndicator loadingIndicator;
 
+    private final RecipeService svc = new RecipeService();
+
     @FXML
     private void initialize() {
         // Initial load
@@ -58,29 +61,38 @@ public class RecipeController {
     }
 
     private void loadRecipes(String query) {
-        try {
-            setLoading(true);
-            RecipeService svc = new RecipeService();
-            List<RecipeModels.RecipeCard> cards = svc.search(query);
+        setLoading(true);
+        Task<List<RecipeModels.RecipeCard>> task = new Task<>() {
+            @Override protected List<RecipeModels.RecipeCard> call() {
+                return svc.search(query);
+            }
+        };
+        task.setOnSucceeded(ev -> {
+            List<RecipeModels.RecipeCard> cards = task.getValue();
             recipeContainer.getChildren().clear();
-            for (RecipeModels.RecipeCard c : cards) {
-                addRecipeCard(c);
+            if (cards != null) {
+                for (RecipeModels.RecipeCard c : cards) {
+                    addRecipeCard(c);
+                }
             }
             if (noResultsLabel != null) {
                 boolean none = cards == null || cards.isEmpty();
                 noResultsLabel.setVisible(none);
                 noResultsLabel.setManaged(none);
             }
-        } catch (Exception e) {
-            showError("Failed to load recipes", e);
+            setLoading(false);
+        });
+        task.setOnFailed(ev -> {
+            Throwable ex = task.getException();
+            showError("Failed to load recipes", ex instanceof Exception ? (Exception) ex : new RuntimeException(ex));
             if (noResultsLabel != null) {
                 noResultsLabel.setText("Failed to load recipes.");
                 noResultsLabel.setVisible(true);
                 noResultsLabel.setManaged(true);
             }
-        } finally {
             setLoading(false);
-        }
+        });
+        new Thread(task, "recipes-load").start();
     }
 
     private void setupFilters() {
@@ -94,36 +106,41 @@ public class RecipeController {
     }
 
     private void loadMeta() {
-        try {
-            RecipeService svc = new RecipeService();
-            var meta = svc.meta();
-            if (categoryBox != null) {
-                categoryBox.getItems().setAll(meta.categories());
+        Task<RecipeModels.RecipeMeta> task = new Task<>() {
+            @Override protected RecipeModels.RecipeMeta call() {
+                return svc.meta();
             }
-            if (areaBox != null) {
-                areaBox.getItems().setAll(meta.areas());
-            }
-        } catch (Exception ex) {
-            // Meta is optional; ignore errors and keep combos empty
-        }
+        };
+        task.setOnSucceeded(ev -> {
+            var meta = task.getValue();
+            if (meta == null) return;
+            if (categoryBox != null) categoryBox.getItems().setAll(meta.categories());
+            if (areaBox != null) areaBox.getItems().setAll(meta.areas());
+        });
+        // Errors are non-fatal for meta; ignore
+        new Thread(task, "recipes-meta").start();
     }
 
     @FXML
     private void onApplyFilters(ActionEvent e) {
-        try {
-            setLoading(true);
-            RecipeService svc = new RecipeService();
-            List<String> chips = parseChips();
-            boolean matchAll = matchModeBox == null || !"Any".equals(matchModeBox.getSelectionModel().getSelectedItem());
-            int minMatched = minMatchedSpinner != null && minMatchedSpinner.getValue() != null ? minMatchedSpinner.getValue() : 1;
-            String category = categoryBox != null ? categoryBox.getSelectionModel().getSelectedItem() : null;
-            String area = areaBox != null ? areaBox.getSelectionModel().getSelectedItem() : null;
-            String name = (searchField != null && searchField.getText() != null && !searchField.getText().isBlank()) ? searchField.getText().trim() : null;
+        setLoading(true);
+        List<String> chips = parseChips();
+        boolean matchAll = matchModeBox == null || !"Any".equals(matchModeBox.getSelectionModel().getSelectedItem());
+        int minMatched = minMatchedSpinner != null && minMatchedSpinner.getValue() != null ? minMatchedSpinner.getValue() : 1;
+        String category = categoryBox != null ? categoryBox.getSelectionModel().getSelectedItem() : null;
+        String area = areaBox != null ? areaBox.getSelectionModel().getSelectedItem() : null;
+        String name = (searchField != null && searchField.getText() != null && !searchField.getText().isBlank()) ? searchField.getText().trim() : null;
 
-            List<RecipeModels.RecipeCardMatch> matches = svc.filter2(chips, matchAll, minMatched, category, area, name, 30, 0);
+        Task<List<RecipeModels.RecipeCardMatch>> task = new Task<>() {
+            @Override protected List<RecipeModels.RecipeCardMatch> call() {
+                return svc.filter2(chips, matchAll, minMatched, category, area, name, 30, 0);
+            }
+        };
+        task.setOnSucceeded(ev -> {
+            var matches = task.getValue();
             recipeContainer.getChildren().clear();
-            for (var m : matches) {
-                addRecipeCardWithBadge(m);
+            if (matches != null) {
+                for (var m : matches) addRecipeCardWithBadge(m);
             }
             if (noResultsLabel != null) {
                 boolean none = matches == null || matches.isEmpty();
@@ -131,11 +148,14 @@ public class RecipeController {
                 noResultsLabel.setVisible(none);
                 noResultsLabel.setManaged(none);
             }
-        } catch (Exception ex) {
-            showError("Failed to apply filters", (Exception) ex);
-        } finally {
             setLoading(false);
-        }
+        });
+        task.setOnFailed(ev -> {
+            Throwable ex = task.getException();
+            showError("Failed to apply filters", ex instanceof Exception ? (Exception) ex : new RuntimeException(ex));
+            setLoading(false);
+        });
+        new Thread(task, "recipes-apply-filters").start();
     }
 
     @FXML
@@ -169,41 +189,46 @@ public class RecipeController {
 
     @FXML
     private void onFilterByFridge(ActionEvent e) {
-        try {
-            setLoading(true);
-            var items = FridgeService.getFridge().listItems();
-            List<String> names = items.stream()
-                .map(gr2536.core.Item::getName)
-                .filter(n -> n != null && !n.isBlank())
-                .distinct()
-                .collect(Collectors.toList());
-            if (names.isEmpty()) {
-                if (noResultsLabel != null) {
-                    noResultsLabel.setText("Your fridge is empty.");
-                    noResultsLabel.setVisible(true);
-                    noResultsLabel.setManaged(true);
-                }
-                recipeContainer.getChildren().clear();
-                return;
+        setLoading(true);
+        var items = FridgeService.getFridge().listItems();
+        List<String> names = items.stream()
+            .map(gr2536.core.Item::getName)
+            .filter(n -> n != null && !n.isBlank())
+            .distinct()
+            .collect(Collectors.toList());
+        if (names.isEmpty()) {
+            if (noResultsLabel != null) {
+                noResultsLabel.setText("Your fridge is empty.");
+                noResultsLabel.setVisible(true);
+                noResultsLabel.setManaged(true);
             }
-            RecipeService svc = new RecipeService();
-            // matchAll = false so ANY ingredient qualifies; minMatched = 1 ensures at least one match.
-            List<RecipeModels.RecipeCardMatch> matches = svc.filter2(names, false, 1, null, null, null, 50, 0);
             recipeContainer.getChildren().clear();
-            for (var m : matches) {
-                addRecipeCardWithBadge(m);
+            setLoading(false);
+            return;
+        }
+        Task<List<RecipeModels.RecipeCardMatch>> task = new Task<>() {
+            @Override protected List<RecipeModels.RecipeCardMatch> call() {
+                return svc.filter2(names, false, 1, null, null, null, 50, 0);
             }
+        };
+        task.setOnSucceeded(ev -> {
+            var matches = task.getValue();
+            recipeContainer.getChildren().clear();
+            if (matches != null) for (var m : matches) addRecipeCardWithBadge(m);
             if (noResultsLabel != null) {
                 boolean none = matches == null || matches.isEmpty();
                 noResultsLabel.setText(none ? "No recipes match your fridge." : "");
                 noResultsLabel.setVisible(none);
                 noResultsLabel.setManaged(none);
             }
-        } catch (Exception ex) {
-            showError("Failed to filter by fridge ingredients", (Exception) ex);
-        } finally {
             setLoading(false);
-        }
+        });
+        task.setOnFailed(ev -> {
+            Throwable ex = task.getException();
+            showError("Failed to filter by fridge ingredients", ex instanceof Exception ? (Exception) ex : new RuntimeException(ex));
+            setLoading(false);
+        });
+        new Thread(task, "recipes-filter-fridge").start();
     }
 
     private void addRecipeCard(RecipeModels.RecipeCard cardData) {
@@ -260,41 +285,20 @@ public class RecipeController {
             stage.setScene(scene);
             stage.setTitle("Recipe Details");
         } catch (Exception ex) {
-            Alert a = new Alert(Alert.AlertType.ERROR);
-            a.setTitle("Navigation Error");
-            a.setHeaderText("Could not open recipe details");
-            a.setContentText(String.valueOf(ex.getMessage()));
-            a.showAndWait();
+            UiUtil.showError("Navigation Error", "Could not open recipe details", String.valueOf(ex.getMessage()));
         }
     }
 
     private void showError(String header, Exception exception) {
-        Alert alert = new Alert(Alert.AlertType.ERROR);
-        alert.setTitle("Error");
-        alert.setHeaderText(header);
-        alert.setContentText(exception.getMessage());
-        alert.showAndWait();
+        UiUtil.showError("Error", header, exception.getMessage());
     }
 
     @FXML
     private void onNavigateToFridge(ActionEvent e) {
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/gr2536/fxui/FridgeApp.fxml"));
-            Parent fridgeRoot = loader.load();
-
-            Scene fridgeScene = new Scene(fridgeRoot);
-            fridgeScene.getStylesheets().add(getClass().getResource("/gr2536/fxui/FridgeApp.css").toExternalForm());
-
-            Stage stage = (Stage) root.getScene().getWindow();
-            stage.setScene(fridgeScene);
-            stage.setTitle("Fridge App");
-
+            UiUtil.switchScene(root, "/gr2536/fxui/FridgeApp.fxml", "Fridge App");
         } catch (Exception ex) {
-            Alert a = new Alert(Alert.AlertType.ERROR);
-            a.setTitle("Navigation Error");
-            a.setHeaderText("Could not load Fridge interface");
-            a.setContentText(String.valueOf(ex.getMessage()));
-            a.showAndWait();
+            UiUtil.showError("Navigation Error", "Could not load Fridge interface", String.valueOf(ex.getMessage()));
         }
     }
 }

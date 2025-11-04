@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -84,104 +85,27 @@ public class RecipeService {
       int limit,
       int offset
   ) {
-    // Normalize inputs once
-    List<String> chips = (ingredients == null ? java.util.List.<String>of() : ingredients).stream()
-        .filter(s -> s != null && !s.isBlank())
-        .map(RecipeService::normalize)
-        .distinct()
-        .toList();
-    Set<String> candidateIds;
-    if (chips.isEmpty()) {
-      // Category/Area/Name-only filtering path
-      java.util.Set<String> byName = new java.util.HashSet<>();
-      if (nameQuery != null && !nameQuery.isBlank()) {
-        var resp = client.searchByName(nameQuery);
-        byName.addAll(MealDbMapper.toCards(resp).stream().map(RecipeCard::id).toList());
-      }
-      java.util.Set<String> byCat = new java.util.HashSet<>();
-      if (category != null && !category.isBlank()) {
-        var resp = client.filterByCategory(category);
-        byCat.addAll(MealDbMapper.toCards(resp).stream().map(RecipeCard::id).toList());
-      }
-      java.util.Set<String> byArea = new java.util.HashSet<>();
-      if (area != null && !area.isBlank()) {
-        var resp = client.filterByArea(area);
-        byArea.addAll(MealDbMapper.toCards(resp).stream().map(RecipeCard::id).toList());
-      }
-      // Combine: if multiple provided, intersect; otherwise union what exists
-      java.util.List<java.util.Set<String>> nonEmpty = new java.util.ArrayList<>();
-      if (!byName.isEmpty()) nonEmpty.add(byName);
-      if (!byCat.isEmpty()) nonEmpty.add(byCat);
-      if (!byArea.isEmpty()) nonEmpty.add(byArea);
-      if (nonEmpty.isEmpty()) return List.of();
-      candidateIds = new java.util.HashSet<>(nonEmpty.get(0));
-      for (int i = 1; i < nonEmpty.size(); i++) candidateIds.retainAll(nonEmpty.get(i));
-    } else {
-      // Seed candidates from MealDB filter per ingredient
-      List<Set<String>> perIng = chips.stream()
-          .map(orig -> client.filterByIngredient(orig))
-          .map(MealDbMapper::toCards)
-          .map(list -> list.stream().map(RecipeCard::id).collect(Collectors.toSet()))
-          .toList();
-      if (perIng.isEmpty()) return List.of();
-      if (matchAll) {
-        candidateIds = perIng.get(0);
-        for (int i = 1; i < perIng.size(); i++) candidateIds.retainAll(perIng.get(i));
-      } else {
-        candidateIds = perIng.stream().flatMap(Set::stream).collect(Collectors.toSet());
-      }
-      if (candidateIds.isEmpty()) return List.of();
-    }
+    List<String> chips = normalizeChips(ingredients);
+    Set<String> candidateIds = chips.isEmpty()
+        ? seedCandidatesFromMeta(category, area, nameQuery)
+        : seedCandidatesFromChips(chips, matchAll);
+    if (candidateIds.isEmpty()) return List.of();
 
-    // Build light lookup for title/thumb from first ingredient fetch to avoid extra calls
-    Map<String, RecipeCard> light = chips.stream()
-        .map(client::filterByIngredient)
-        .map(MealDbMapper::toCards)
-        .flatMap(List::stream)
-        .collect(Collectors.toMap(RecipeCard::id, c -> c, (a, b) -> a));
-
-    // Verify and score by fetching details and checking ingredients properly
-    var scored = candidateIds.stream()
+    Map<String, RecipeCard> light = buildLightLookup(chips);
+    var params = new FilterParams(chips, Math.max(1, minMatched), category, area, nameQuery);
+    return candidateIds.stream()
         .skip(Math.max(0, offset))
         .limit(Math.max(1, limit))
-        .map(id -> {
-          var detail = client.lookupById(id);
-          if (detail == null || detail.meals() == null || detail.meals().isEmpty()) return null;
-          var dto = MealDbMapper.toDetail(detail.meals().get(0));
-          int total = dto.ingredients() == null ? 0 : dto.ingredients().size();
-          int matched = 0;
-          if (!chips.isEmpty()) {
-            matched = (int) dto.ingredients().stream()
-                .map(i -> normalize(i.name()))
-                .filter(n -> !n.isBlank())
-                .filter(n -> chips.contains(n) || synonyms(n).stream().anyMatch(chips::contains))
-                .distinct()
-                .count();
-            if (matched < Math.max(1, minMatched)) return null;
-          }
-          if (category != null && !category.isBlank()) {
-            if (dto.category() == null || !dto.category().equalsIgnoreCase(category)) return null;
-          }
-          if (area != null && !area.isBlank()) {
-            if (dto.area() == null || !dto.area().equalsIgnoreCase(area)) return null;
-          }
-          if (nameQuery != null && !nameQuery.isBlank()) {
-            if (dto.title() == null || !dto.title().toLowerCase().contains(nameQuery.toLowerCase())) return null;
-          }
-          var base = light.getOrDefault(id, new RecipeCard(id, dto.title(), dto.image()));
-          return new RecipeCardMatch(base.id(), base.title(), base.image(), matched, total);
-        })
+        .map(id -> verifyAndScore(id, light, params))
         .filter(java.util.Objects::nonNull)
         .sorted((a, b) -> Integer.compare(b.matched(), a.matched()))
         .toList();
-
-    return scored;
   }
 
   // -------- Helpers --------
   private static String normalize(String s) {
     if (s == null) return "";
-    String x = s.trim().toLowerCase();
+    String x = s.trim().toLowerCase(Locale.ROOT);
     x = x.replace('-', ' ').replace('_', ' ');
     x = x.replaceAll("[^a-z0-9 ]", "");
     x = x.replaceAll("\\s+", " ");
@@ -196,9 +120,102 @@ public class RecipeService {
     };
   }
 
+  private static List<String> normalizeChips(List<String> ingredients) {
+    return (ingredients == null ? java.util.List.<String>of() : ingredients).stream()
+        .filter(s -> s != null && !s.isBlank())
+        .map(RecipeService::normalize)
+        .distinct()
+        .toList();
+  }
+
+  private Set<String> seedCandidatesFromChips(List<String> chips, boolean matchAll) {
+    List<Set<String>> perIng = chips.stream()
+        .map(client::filterByIngredient)
+        .map(MealDbMapper::toCards)
+        .map(list -> list.stream().map(RecipeCard::id).collect(Collectors.toSet()))
+        .toList();
+    if (perIng.isEmpty()) return java.util.Set.of();
+    if (matchAll) {
+      Set<String> ids = new java.util.HashSet<>(perIng.get(0));
+      for (int i = 1; i < perIng.size(); i++) ids.retainAll(perIng.get(i));
+      return ids;
+    }
+    return perIng.stream().flatMap(Set::stream).collect(Collectors.toSet());
+  }
+
+  private Set<String> seedCandidatesFromMeta(String category, String area, String nameQuery) {
+    java.util.Set<String> byName = new java.util.HashSet<>();
+    if (nameQuery != null && !nameQuery.isBlank()) {
+      var resp = client.searchByName(nameQuery);
+      byName.addAll(MealDbMapper.toCards(resp).stream().map(RecipeCard::id).toList());
+    }
+    java.util.Set<String> byCat = new java.util.HashSet<>();
+    if (category != null && !category.isBlank()) {
+      var resp = client.filterByCategory(category);
+      byCat.addAll(MealDbMapper.toCards(resp).stream().map(RecipeCard::id).toList());
+    }
+    java.util.Set<String> byArea = new java.util.HashSet<>();
+    if (area != null && !area.isBlank()) {
+      var resp = client.filterByArea(area);
+      byArea.addAll(MealDbMapper.toCards(resp).stream().map(RecipeCard::id).toList());
+    }
+    java.util.List<java.util.Set<String>> nonEmpty = new java.util.ArrayList<>();
+    if (!byName.isEmpty()) nonEmpty.add(byName);
+    if (!byCat.isEmpty()) nonEmpty.add(byCat);
+    if (!byArea.isEmpty()) nonEmpty.add(byArea);
+    if (nonEmpty.isEmpty()) return java.util.Set.of();
+    java.util.Set<String> ids = new java.util.HashSet<>(nonEmpty.get(0));
+    for (int i = 1; i < nonEmpty.size(); i++) ids.retainAll(nonEmpty.get(i));
+    return ids;
+  }
+
+  private Map<String, RecipeCard> buildLightLookup(List<String> chips) {
+    if (chips.isEmpty()) return java.util.Map.of();
+    return chips.stream()
+        .map(client::filterByIngredient)
+        .map(MealDbMapper::toCards)
+        .flatMap(List::stream)
+        .collect(Collectors.toMap(RecipeCard::id, c -> c, (a, b) -> a));
+  }
+
+  private RecipeCardMatch verifyAndScore(String id, Map<String, RecipeCard> light, FilterParams params) {
+    var detail = client.lookupById(id);
+    if (detail == null || detail.meals() == null || detail.meals().isEmpty()) return null;
+    var dto = MealDbMapper.toDetail(detail.meals().get(0));
+    int total = dto.ingredients() == null ? 0 : dto.ingredients().size();
+    int matched = 0;
+    if (!params.chips().isEmpty()) {
+      matched = (int) dto.ingredients().stream()
+          .map(i -> normalize(i.name()))
+          .filter(n -> !n.isBlank())
+          .filter(n -> params.chips().contains(n) || synonyms(n).stream().anyMatch(params.chips()::contains))
+          .distinct()
+          .count();
+      if (matched < params.minMatched()) return null;
+    }
+    if (!passesConstraints(dto, params.category(), params.area(), params.nameQuery())) return null;
+    var base = light.getOrDefault(id, new RecipeCard(id, dto.title(), dto.image()));
+    return new RecipeCardMatch(base.id(), base.title(), base.image(), matched, total);
+  }
+
+  private boolean passesConstraints(RecipeDetails dto, String category, String area, String nameQuery) {
+    if (category != null && !category.isBlank()) {
+      if (dto.category() == null || !dto.category().equalsIgnoreCase(category)) return false;
+    }
+    if (area != null && !area.isBlank()) {
+      if (dto.area() == null || !dto.area().equalsIgnoreCase(area)) return false;
+    }
+    if (nameQuery != null && !nameQuery.isBlank()) {
+      if (dto.title() == null || !dto.title().toLowerCase(Locale.ROOT).contains(nameQuery.toLowerCase(Locale.ROOT))) return false;
+    }
+    return true;
+  }
+
+  private record FilterParams(List<String> chips, int minMatched, String category, String area, String nameQuery) {}
+
   public RecipeMeta meta() {
-    List<String> categories = extract(client.listCategories(), true);
-    List<String> areas = extract(client.listAreas(), false);
+    List<String> categories = List.copyOf(extract(client.listCategories(), true));
+    List<String> areas = List.copyOf(extract(client.listAreas(), false));
     return new RecipeMeta(categories, areas);
   }
 
