@@ -19,5 +19,7 @@ module gr2536.springboot {
 
     requires io.swagger.v3.oas.models;
 
+    requires static lombok;
+
     opens gr2536.springboot to spring.core, spring.beans, spring.context, spring.web, spring.aop;
 }
