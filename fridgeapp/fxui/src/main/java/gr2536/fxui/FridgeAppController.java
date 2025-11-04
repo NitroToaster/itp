@@ -783,6 +783,28 @@ public class FridgeAppController {
     }
 
     /**
+     * Navigate to the Recipes interface.
+     * @param e action event
+     */
+    @FXML
+    private void onNavigateToRecipes(ActionEvent e) {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/gr2536/fxui/Recipe.fxml"));
+            Parent recipeRoot = loader.load();
+
+            Scene recipeScene = new Scene(recipeRoot);
+            recipeScene.getStylesheets().add(getClass().getResource("/gr2536/fxui/FridgeApp.css").toExternalForm());
+
+            Stage stage = (Stage) root.getScene().getWindow();
+            stage.setScene(recipeScene);
+            stage.setTitle("Recipes");
+
+        } catch (Exception exception) {
+            showException("Navigation Error", new RuntimeException("Could not load Recipes interface: " + exception.getMessage()));
+        }
+    }
+
+    /**
      * Refreshes ListView with items from the fridge.
      * If search/filter is active, re-applies the current criteria with updated sort.
      * Otherwise, shows all items with current sort order applied.
