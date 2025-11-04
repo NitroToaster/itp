@@ -6,6 +6,8 @@ import java.time.LocalDate;
 
 import org.junit.jupiter.api.Test;
 
+import gr2536.core.utils.*;
+
 public class SearchCriteriaTest {
 
     /*

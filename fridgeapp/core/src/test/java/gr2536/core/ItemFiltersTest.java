@@ -3,11 +3,12 @@ package gr2536.core;
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.function.Predicate;
 
 import org.junit.jupiter.api.Test;
+
+import gr2536.core.utils.*;
+import gr2536.core.item.Item;
 
 public class ItemFiltersTest {
 
