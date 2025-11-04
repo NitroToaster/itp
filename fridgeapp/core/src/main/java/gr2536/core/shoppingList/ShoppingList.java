@@ -1,9 +1,19 @@
-package gr2536.core;
+package gr2536.core.shoppingList;
 
 import java.time.LocalDate;
 import java.util.*;
-// import java.util.stream.Collectors;
 import java.util.stream.Collectors;
+
+import gr2536.core.fridge.Fridge;
+import gr2536.core.item.Item;
+import gr2536.core.item.ItemList;
+import gr2536.core.utils.Entry;
+import gr2536.core.utils.ItemFilters;
+import gr2536.core.utils.ItemListUtils;
+import gr2536.core.utils.Key;
+import gr2536.core.utils.NameMatchMode;
+import gr2536.core.utils.SearchCriteria;
+import gr2536.core.utils.SearchSort;
 
 public class ShoppingList implements ItemList {
 
@@ -129,3 +139,4 @@ public class ShoppingList implements ItemList {
         return search(new SearchCriteria(null, NameMatchMode.CONTAINS, null, null, null, until, true, SearchSort.DEFAULT));
     }
 }
+

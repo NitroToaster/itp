@@ -14,6 +14,13 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
+import gr2536.core.fridge.Fridge;
+import gr2536.core.fridge.FridgeFileManager;
+import gr2536.core.item.Item;
+import gr2536.core.utils.NameMatchMode;
+import gr2536.core.utils.SearchCriteria;
+import gr2536.core.utils.SearchSort;
+
 public class FridgeTest {
 
     private Fridge fridge;

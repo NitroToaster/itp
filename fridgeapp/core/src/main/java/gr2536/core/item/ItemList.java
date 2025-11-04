@@ -1,8 +1,8 @@
-package gr2536.core;
+package gr2536.core.item;
 
 import java.util.*;
 
-interface ItemList {
+public interface ItemList {
 
     void add(Item item);
 
@@ -12,3 +12,4 @@ interface ItemList {
 
     List<Item> listItems();
 }
+

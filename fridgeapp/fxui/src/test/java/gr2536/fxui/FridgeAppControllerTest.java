@@ -18,9 +18,9 @@ import org.testfx.framework.junit5.Init;
 import org.testfx.matcher.base.NodeMatchers;
 import static org.testfx.assertions.api.Assertions.assertThat;
 
-import gr2536.core.Item;
-import gr2536.core.NameMatchMode;
-import gr2536.core.SearchSort;
+import gr2536.core.item.Item;
+import gr2536.core.utils.NameMatchMode;
+import gr2536.core.utils.SearchSort;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;

@@ -4,8 +4,8 @@ import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import gr2536.core.Fridge;
-import gr2536.core.Item;
+import gr2536.core.fridge.Fridge;
+import gr2536.core.item.Item;
 import java.time.LocalDate;
 
 /**

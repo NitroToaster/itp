@@ -1,4 +1,4 @@
-package gr2536.core;
+package gr2536.core.item;
 
 import java.time.LocalDate;
 import java.util.Locale;
@@ -96,5 +96,4 @@ public final class Item {
                 '}';
     }
 }
-
 

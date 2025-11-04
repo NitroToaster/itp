@@ -1,4 +1,4 @@
-package gr2536.core;
+package gr2536.core.utils;
 
 public enum SearchSort {
     DEFAULT,
@@ -9,5 +9,4 @@ public enum SearchSort {
     QUANTITY_ASC,
     QUANTITY_DESC
 }
-
 

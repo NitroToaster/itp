@@ -1,4 +1,4 @@
-package gr2536.core;
+package gr2536.core.utils;
 
 import java.time.LocalDate;
 
@@ -38,5 +38,4 @@ public record SearchCriteria(
         return new SearchCriteria(null, NameMatchMode.CONTAINS, null, null, null, null, true, SearchSort.DEFAULT);
     }
 }
-
 

@@ -1,7 +1,7 @@
 package gr2536.springboot.fridge;
 
-import gr2536.core.Fridge;
-import gr2536.core.Item;
+import gr2536.core.fridge.Fridge;
+import gr2536.core.item.Item;
 import gr2536.springboot.fridge.dto.CreateItemRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

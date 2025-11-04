@@ -1,14 +1,21 @@
-package gr2536.core;
+package gr2536.core.fridge;
 
 import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
-//import gr2536.core.ItemListUtils;
-//import gr2536.core.Key;
-//import gr2536.core.Entry;
 
 import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonSetter;
+
+import gr2536.core.item.Item;
+import gr2536.core.item.ItemList;
+import gr2536.core.utils.Entry;
+import gr2536.core.utils.ItemFilters;
+import gr2536.core.utils.ItemListUtils;
+import gr2536.core.utils.Key;
+import gr2536.core.utils.NameMatchMode;
+import gr2536.core.utils.SearchCriteria;
+import gr2536.core.utils.SearchSort;
 
 /**
  * A non-thread-safe fridge inventory that groups items by name,
@@ -237,3 +244,4 @@ public class Fridge implements ItemList {
         this.filename = tempFilename;
     }
 }
+

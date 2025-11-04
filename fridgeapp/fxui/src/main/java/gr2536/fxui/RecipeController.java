@@ -192,7 +192,7 @@ public class RecipeController {
         setLoading(true);
         var items = FridgeService.getFridge().listItems();
         List<String> names = items.stream()
-            .map(gr2536.core.Item::getName)
+            .map(gr2536.core.item.Item::getName)
             .filter(n -> n != null && !n.isBlank())
             .distinct()
             .collect(Collectors.toList());
