@@ -27,6 +27,7 @@ public class RecipeDetailController {
     @FXML private TextArea instructionsArea;
 
     private final RecipeService service = new RecipeService();
+    @FXML private javafx.scene.control.CheckBox hideAvailableCheck;
     private String recipeId;
     private Set<String> missingNamesLower = new HashSet<>();
 
@@ -41,7 +42,8 @@ public class RecipeDetailController {
             if (d.image() != null && !d.image().isBlank()) {
                 imageView.setImage(new Image(d.image(), true));
             }
-            metaLabel.setText(String.format("%s • %s", nullSafe(d.category()), nullSafe(d.area())));
+            int totalIng = d.ingredients() == null ? 0 : d.ingredients().size();
+            metaLabel.setText(String.format("%s • %s • You have %d of %d", nullSafe(d.category()), nullSafe(d.area()), Math.max(0, totalIng - computeMissingNames(d).size()), totalIng));
             // Compare with fridge
             var fridge = FridgeService.getFridge();
             missingNamesLower.clear();
@@ -70,6 +72,10 @@ public class RecipeDetailController {
                 }
             });
             instructionsArea.setText(d.instructions());
+
+            if (hideAvailableCheck != null) {
+                hideAvailableCheck.selectedProperty().addListener((obs, was, isNow) -> applyHideAvailable());
+            }
         } catch (Exception e) {
             Alert a = new Alert(Alert.AlertType.ERROR);
             a.setTitle("Error");
@@ -80,6 +86,36 @@ public class RecipeDetailController {
     }
 
     private String nullSafe(String s) { return s == null ? "" : s; }
+
+    private java.util.Set<String> computeMissingNames(RecipeModels.RecipeDetails d) {
+        var set = new java.util.HashSet<String>();
+        var fridge = FridgeService.getFridge();
+        if (d.ingredients() != null) {
+            for (var i : d.ingredients()) {
+                String name = i.name() == null ? "" : i.name().trim();
+                boolean have = fridge.getQuantity(name) > 0;
+                if (!have && !name.isBlank()) set.add(name.toLowerCase());
+            }
+        }
+        return set;
+    }
+
+    private void applyHideAvailable() {
+        boolean hide = hideAvailableCheck != null && hideAvailableCheck.isSelected();
+        if (!hide) {
+            // reset by re-setting current items to include all ingredients; easiest is to re-run load()
+            if (recipeId != null) load();
+            return;
+        }
+        var current = new java.util.ArrayList<String>(ingredientsList.getItems());
+        var filtered = current.stream()
+            .filter(text -> {
+                String name = text.contains(" - ") ? text.substring(0, text.indexOf(" - ")) : text;
+                return missingNamesLower.contains(name.toLowerCase());
+            })
+            .toList();
+        ingredientsList.getItems().setAll(filtered);
+    }
 
     @FXML
     private void onBack(ActionEvent e) {

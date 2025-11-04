@@ -18,7 +18,10 @@
           <content>
             <VBox spacing="12" prefWidth="900">
               <ImageView fx:id="imageView" fitWidth="360" preserveRatio="true"/>
-              <Label fx:id="metaLabel" wrapText="true"/>
+              <HBox spacing="12" alignment="CENTER_LEFT">
+                <Label fx:id="metaLabel" wrapText="true"/>
+                <CheckBox fx:id="hideAvailableCheck" text="Hide available"/>
+              </HBox>
               <HBox spacing="8" alignment="CENTER_LEFT">
                 <Label text="Ingredients" styleClass="section-header"/>
                 <Button fx:id="addMissingButton" text="Add missing to shopping list" styleClass="primary" onAction="#onAddMissingToShoppingList"/>

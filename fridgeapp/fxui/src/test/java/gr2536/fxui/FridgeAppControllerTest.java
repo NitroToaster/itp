@@ -98,7 +98,7 @@ public class FridgeAppControllerTest extends ApplicationTest {
         clickOn("#addButton");
 
         // Lookup the dialog's "Add" button by its text
-        Button dialogAddButton = lookup(".button").lookup("Add").queryButton();
+        Button dialogAddButton = lookup(".dialog-pane").lookup(".button").lookup("Add").queryButton();
 
         interact(() -> {
             assertTrue(dialogAddButton.isDisabled(), "Add button should be disabled initially");
@@ -130,9 +130,9 @@ public class FridgeAppControllerTest extends ApplicationTest {
     public void testAddButton() {
         clickOn("#addButton");
 
-        nameField = lookup("#nameField").query();
-        quantitySpinner = lookup("#quantitySpinner").query();
-        expirationPicker = lookup("#expirationPicker").query();
+        nameField = lookup(".dialog-pane").lookup("#nameField").query();
+        quantitySpinner = lookup(".dialog-pane").lookup("#quantitySpinner").query();
+        expirationPicker = lookup(".dialog-pane").lookup("#expirationPicker").query();
 
         interact(() -> {
             nameField.setText("Apple");
@@ -141,7 +141,7 @@ public class FridgeAppControllerTest extends ApplicationTest {
         });
 
         // Lookup the dialog's Add button by text
-        Button dialogAddButton = lookup(".button").lookup("Add").queryButton();
+        Button dialogAddButton = lookup(".dialog-pane").lookup(".button").lookup("Add").queryButton();
         clickOn(dialogAddButton);
 
         interact(() -> {
@@ -160,9 +160,9 @@ public class FridgeAppControllerTest extends ApplicationTest {
 
         clickOn("#addButton");
 
-        nameField = lookup("#nameField").query();
-        quantitySpinner = lookup("#quantitySpinner").query();
-        expirationPicker = lookup("#expirationPicker").query();
+        nameField = lookup(".dialog-pane").lookup("#nameField").query();
+        quantitySpinner = lookup(".dialog-pane").lookup("#quantitySpinner").query();
+        expirationPicker = lookup(".dialog-pane").lookup("#expirationPicker").query();
 
         // Add first item
         interact(() -> {
@@ -186,7 +186,7 @@ public class FridgeAppControllerTest extends ApplicationTest {
             quantitySpinner.getValueFactory().setValue(1);
             expirationPicker.setValue(LocalDate.of(2025, 10, 2));
         });
-        dialogAddButton = lookup(".button").lookup("Add").queryButton();
+        dialogAddButton = lookup(".dialog-pane").lookup(".button").lookup("Add").queryButton();
         clickOn(dialogAddButton);
 
         interact(() -> {
@@ -202,9 +202,9 @@ public class FridgeAppControllerTest extends ApplicationTest {
         
         clickOn("#addButton");
 
-        nameField = lookup("#nameField").query();
-        quantitySpinner = lookup("#quantitySpinner").query();
-        expirationPicker = lookup("#expirationPicker").query();
+        nameField = lookup(".dialog-pane").lookup("#nameField").query();
+        quantitySpinner = lookup(".dialog-pane").lookup("#quantitySpinner").query();
+        expirationPicker = lookup(".dialog-pane").lookup("#expirationPicker").query();
 
         interact(() -> {
             nameField.setText("Banana");
@@ -213,14 +213,14 @@ public class FridgeAppControllerTest extends ApplicationTest {
         });
 
         // Lookup the dialog's Add button by text
-        Button dialogAddButton = lookup(".button").lookup("Add").queryButton();
+        Button dialogAddButton = lookup(".dialog-pane").lookup(".button").lookup("Add").queryButton();
         clickOn(dialogAddButton);
 
         clickOn("#addButton");
 
-        nameField = lookup("#nameField").query();
-        quantitySpinner = lookup("#quantitySpinner").query();
-        expirationPicker = lookup("#expirationPicker").query();
+        nameField = lookup(".dialog-pane").lookup("#nameField").query();
+        quantitySpinner = lookup(".dialog-pane").lookup("#quantitySpinner").query();
+        expirationPicker = lookup(".dialog-pane").lookup("#expirationPicker").query();
 
         interact(() -> {
             assertTrue(nameField.getText().isEmpty(), "Name field should be cleared");
@@ -250,7 +250,7 @@ public class FridgeAppControllerTest extends ApplicationTest {
             expirationPicker.setValue(LocalDate.of(2025, 10, 10));
         });
         // Lookup the dialog's Add button by text
-        Button dialogAddButton = lookup(".button").lookup("Add").queryButton();
+        Button dialogAddButton = lookup(".dialog-pane").lookup(".button").lookup("Add").queryButton();
         clickOn(dialogAddButton);
 
         // Select item programmatically and remove one
@@ -276,16 +276,16 @@ public class FridgeAppControllerTest extends ApplicationTest {
         // Add item with quantity 5
         clickOn("#addButton");
 
-        nameField = lookup("#nameField").query();
-        quantitySpinner = lookup("#quantitySpinner").query();
-        expirationPicker = lookup("#expirationPicker").query();
+        nameField = lookup(".dialog-pane").lookup("#nameField").query();
+        quantitySpinner = lookup(".dialog-pane").lookup("#quantitySpinner").query();
+        expirationPicker = lookup(".dialog-pane").lookup("#expirationPicker").query();
         interact(() -> {
             nameField.setText("Grape");
             quantitySpinner.getValueFactory().setValue(5);
             expirationPicker.setValue(LocalDate.of(2025, 10, 15));
         });
         // Lookup the dialog's Add button by text
-        Button dialogAddButton = lookup(".button").lookup("Add").queryButton();
+        Button dialogAddButton = lookup(".dialog-pane").lookup(".button").lookup("Add").queryButton();
         clickOn(dialogAddButton);
 
         // Select item programmatically and remove all
@@ -309,9 +309,9 @@ public class FridgeAppControllerTest extends ApplicationTest {
         // Add item with quantity 2
         clickOn("#addButton");
 
-        nameField = lookup("#nameField").query();
-        quantitySpinner = lookup("#quantitySpinner").query();
-        expirationPicker = lookup("#expirationPicker").query();
+        nameField = lookup(".dialog-pane").lookup("#nameField").query();
+        quantitySpinner = lookup(".dialog-pane").lookup("#quantitySpinner").query();
+        expirationPicker = lookup(".dialog-pane").lookup("#expirationPicker").query();
         interact(() -> {
             nameField.setText("Cherry");
             quantitySpinner.getValueFactory().setValue(2);
@@ -367,14 +367,14 @@ public class FridgeAppControllerTest extends ApplicationTest {
             expirationPicker.setValue(LocalDate.of(2025, 10, 2));
         });
         // Lookup the dialog's Add button by text
-        dialogAddButton = lookup(".button").lookup("Add").queryButton();
+        dialogAddButton = lookup(".dialog-pane").lookup(".button").lookup("Add").queryButton();
         clickOn(dialogAddButton);
 
         clickOn("#addButton");
 
-        nameField = lookup("#nameField").query();
-        quantitySpinner = lookup("#quantitySpinner").query();
-        expirationPicker = lookup("#expirationPicker").query();
+        nameField = lookup(".dialog-pane").lookup("#nameField").query();
+        quantitySpinner = lookup(".dialog-pane").lookup("#quantitySpinner").query();
+        expirationPicker = lookup(".dialog-pane").lookup("#expirationPicker").query();
         interact(() -> {
             nameField.setText("Milkshake");
             expirationPicker.setValue(LocalDate.of(2025, 10, 3));
@@ -409,16 +409,16 @@ public class FridgeAppControllerTest extends ApplicationTest {
             expirationPicker.setValue(LocalDate.of(2025, 10, 20));
         });
         // Lookup the dialog's Add button by text
-        Button dialogAddButton = lookup(".button").lookup("Add").queryButton();
+        Button dialogAddButton = lookup(".dialog-pane").lookup(".button").lookup("Add").queryButton();
         clickOn(dialogAddButton);
         sleep(100); // Allow UI to update
 
         // Add second item
         clickOn("#addButton");
 
-        nameField = lookup("#nameField").query();
-        quantitySpinner = lookup("#quantitySpinner").query();
-        expirationPicker = lookup("#expirationPicker").query();
+        nameField = lookup(".dialog-pane").lookup("#nameField").query();
+        quantitySpinner = lookup(".dialog-pane").lookup("#quantitySpinner").query();
+        expirationPicker = lookup(".dialog-pane").lookup("#expirationPicker").query();
         interact(() -> {
             nameField.setText("Bread");
             expirationPicker.setValue(LocalDate.of(2025, 10, 21));

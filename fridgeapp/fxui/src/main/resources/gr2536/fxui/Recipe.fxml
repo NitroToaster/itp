@@ -17,8 +17,36 @@
         <HBox spacing="8" alignment="CENTER_LEFT">
           <TextField fx:id="searchField" promptText="Search recipes..."/>
           <Button text="Search" styleClass="primary" onAction="#onSearch"/>
+          <Button text="Use my fridge" onAction="#onFilterByFridge"/>
         </HBox>
+        <TitledPane text="Filters" expanded="false">
+          <content>
+            <VBox spacing="8">
+              <padding><Insets topRightBottomLeft="8"/></padding>
+              <HBox spacing="8" alignment="CENTER_LEFT">
+                <TextField fx:id="ingredientsField" promptText="Ingredients (comma-separated)" HBox.hgrow="ALWAYS"/>
+                <Label text="Match"/>
+                <ComboBox fx:id="matchModeBox" prefWidth="120.0"/>
+                <Label text="Min matched"/>
+                <Spinner fx:id="minMatchedSpinner" prefWidth="100.0"/>
+              </HBox>
+              <HBox spacing="8" alignment="CENTER_LEFT">
+                <Label text="Category"/>
+                <ComboBox fx:id="categoryBox" prefWidth="180.0"/>
+                <Label text="Area"/>
+                <ComboBox fx:id="areaBox" prefWidth="180.0"/>
+                <Button text="Apply Filters" styleClass="primary" onAction="#onApplyFilters"/>
+                <Button text="Clear" onAction="#onClearFilters"/>
+              </HBox>
+            </VBox>
+          </content>
+        </TitledPane>
         <Label fx:id="noResultsLabel" text="No recipes found." visible="false" managed="false"/>
+        <HBox alignment="CENTER">
+          <children>
+            <ProgressIndicator fx:id="loadingIndicator" visible="false" managed="false"/>
+          </children>
+        </HBox>
         <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS">
           <content>
             <FlowPane fx:id="recipeContainer" hgap="12" vgap="12" prefWrapLength="900"/>

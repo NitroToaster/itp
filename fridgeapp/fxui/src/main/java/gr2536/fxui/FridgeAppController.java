@@ -649,9 +649,10 @@ public class FridgeAppController {
             Dialog<Item> dialog = new Dialog<>();
             dialog.setTitle("Add Item");
             dialog.setDialogPane(pane);
-            dialog.getDialogPane().getStylesheets().add(
-                getClass().getResource("/gr2536/fxui/FridgeApp.css").toExternalForm()
-            );
+            String appCss = getClass()
+                .getResource("/gr2536/fxui/FridgeApp.css")
+                .toExternalForm();
+            dialog.getDialogPane().getStylesheets().add(appCss);
             // Remove default header region to avoid an extra bar at the top
             pane.setHeaderText(null);
             // Ensure dialog is properly sized and modal to the app window
@@ -778,7 +779,8 @@ public class FridgeAppController {
             stage.setTitle("Shopping List");
             
         } catch (Exception exception) {
-            showException("Navigation Error", new RuntimeException("Could not load Shopping List interface: " + exception.getMessage()));
+            String msg = "Could not load Shopping List interface: " + exception.getMessage();
+            showException("Navigation Error", new RuntimeException(msg));
         }
     }
 
@@ -793,14 +795,18 @@ public class FridgeAppController {
             Parent recipeRoot = loader.load();
 
             Scene recipeScene = new Scene(recipeRoot);
-            recipeScene.getStylesheets().add(getClass().getResource("/gr2536/fxui/FridgeApp.css").toExternalForm());
+            String appCss = getClass()
+                .getResource("/gr2536/fxui/FridgeApp.css")
+                .toExternalForm();
+            recipeScene.getStylesheets().add(appCss);
 
             Stage stage = (Stage) root.getScene().getWindow();
             stage.setScene(recipeScene);
             stage.setTitle("Recipes");
 
         } catch (Exception exception) {
-            showException("Navigation Error", new RuntimeException("Could not load Recipes interface: " + exception.getMessage()));
+            String msg = "Could not load Recipes interface: " + exception.getMessage();
+            showException("Navigation Error", new RuntimeException(msg));
         }
     }
 

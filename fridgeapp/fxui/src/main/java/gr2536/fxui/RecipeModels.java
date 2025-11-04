@@ -7,6 +7,8 @@ public final class RecipeModels {
 
     public record RecipeCard(String id, String title, String image) {}
 
+    public record RecipeCardMatch(String id, String title, String image, int matched, int total) {}
+
     public record IngredientDto(String name, String measure) {}
 
     public record RecipeDetails(
@@ -19,6 +21,8 @@ public final class RecipeModels {
         String instructions,
         String youtubeUrl
     ) {}
+
+    public record RecipeMeta(List<String> categories, List<String> areas) {}
 }
 
 
