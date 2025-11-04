@@ -71,6 +71,14 @@ public class Fridge implements ItemList {
         save();
     }
 
+    /**
+     * Clears all items from the fridge.
+     */
+    public void clear() {
+        inventoryByKey.clear();
+        save();
+    }
+
     private void save() {
         if (fileManager != null && filename != null) {
             fileManager.saveFridgeData(this, filename);

@@ -26,4 +26,13 @@ public class FridgeService {
   public int remove(String name, int qty) {
     return fridge.remove(name, qty);
   }
+
+  public void replace(List<Item> items) {
+    fridge.clear();
+    if (items != null) {
+      for (Item item : items) {
+        fridge.add(item);
+      }
+    }
+  }
 }

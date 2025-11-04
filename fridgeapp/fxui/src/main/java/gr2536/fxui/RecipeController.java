@@ -191,12 +191,13 @@ public class RecipeController {
     private void onFilterByFridge(ActionEvent e) {
         setLoading(true);
         var items = FridgeService.getFridge().listItems();
-        List<String> names = items.stream()
-            .map(gr2536.core.item.Item::getName)
-            .filter(n -> n != null && !n.isBlank())
-            .distinct()
-            .collect(Collectors.toList());
-        if (names.isEmpty()) {
+        
+        // Also grab meta filters from the UI
+        String category = categoryBox != null ? categoryBox.getSelectionModel().getSelectedItem() : null;
+        String area = areaBox != null ? areaBox.getSelectionModel().getSelectedItem() : null;
+        String name = (searchField != null && searchField.getText() != null && !searchField.getText().isBlank()) ? searchField.getText().trim() : null;
+
+        if (items.isEmpty()) {
             if (noResultsLabel != null) {
                 noResultsLabel.setText("Your fridge is empty.");
                 noResultsLabel.setVisible(true);
@@ -207,8 +208,12 @@ public class RecipeController {
             return;
         }
         Task<List<RecipeModels.RecipeCardMatch>> task = new Task<>() {
-            @Override protected List<RecipeModels.RecipeCardMatch> call() {
-                return svc.filter2(names, false, 1, null, null, null, 50, 0);
+            @Override protected List<RecipeModels.RecipeCardMatch> call() throws Exception {
+                // 1. Sync local fridge with backend
+                svc.replaceInventory(items);
+                // 2. Call filter2 with NO ingredients (so backend uses its own, now-synced fridge)
+                //    but pass along the other filters.
+                return svc.filter2(List.of(), false, 1, category, area, name, 5, 0);
             }
         };
         task.setOnSucceeded(ev -> {

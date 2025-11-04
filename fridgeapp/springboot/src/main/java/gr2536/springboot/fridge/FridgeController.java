@@ -35,4 +35,12 @@ public class FridgeController {
     int remaining = svc.remove(name, qty);
     return ResponseEntity.ok(new RemoveResult(name, remaining));
   }
+
+  @PutMapping
+  @ResponseStatus(HttpStatus.OK)
+  public List<Item> replace(@RequestBody List<Item> items) {
+      System.out.println("SYNC: Replacing server fridge with " + (items == null ? 0 : items.size()) + " items from UI.");
+      svc.replace(items);
+      return svc.list();
+  }
 }

@@ -35,8 +35,16 @@ public class RecipeService {
     private static String resolveBaseUrl() {
         String env = System.getenv("RECIPES_API_BASE_URL");
         String prop = System.getProperty("recipes.api.base-url");
-        String fallback = "http://localhost:8080/api/v1/recipes";
+        String fallback = "http://localhost:8080/api/v1";
         return env != null && !env.isBlank() ? env : (prop != null && !prop.isBlank() ? prop : fallback);
+    }
+
+    private String getInventoryUrl() {
+        return baseUrl + "/inventory";
+    }
+
+    private String getRecipesUrl() {
+        return baseUrl + "/recipes";
     }
 
     private static boolean resolveDirectMode() {
@@ -64,7 +72,7 @@ public class RecipeService {
             }
             String q = URLEncoder.encode(query == null ? "" : query, UTF_8);
             HttpRequest req = HttpRequest.newBuilder()
-                .uri(URI.create(baseUrl + "/search?q=" + q))
+                .uri(URI.create(getRecipesUrl() + "/search?q=" + q))
                 .timeout(Duration.ofSeconds(10))
                 .GET()
                 .build();
@@ -87,7 +95,7 @@ public class RecipeService {
                 return new RecipeModels.RecipeMeta(cats, areas);
             }
             HttpRequest req = HttpRequest.newBuilder()
-                .uri(URI.create(baseUrl + "/meta"))
+                .uri(URI.create(getRecipesUrl() + "/meta"))
                 .timeout(Duration.ofSeconds(10))
                 .GET()
                 .build();
@@ -125,7 +133,7 @@ public class RecipeService {
                 }
                 return out;
             }
-            StringBuilder sb = new StringBuilder(baseUrl).append("/filter2?match=")
+            StringBuilder sb = new StringBuilder(getRecipesUrl()).append("/filter2?match=")
                 .append(matchAll ? "all" : "any")
                 .append("&minMatched=").append(minMatched)
                 .append("&limit=").append(limit)
@@ -158,7 +166,7 @@ public class RecipeService {
                 return directDetailsMealDb(id);
             }
             HttpRequest req = HttpRequest.newBuilder()
-                .uri(URI.create(baseUrl + "/" + URLEncoder.encode(id, UTF_8)))
+                .uri(URI.create(getRecipesUrl() + "/" + URLEncoder.encode(id, UTF_8)))
                 .timeout(Duration.ofSeconds(10))
                 .GET()
                 .build();
@@ -195,7 +203,7 @@ public class RecipeService {
         return directFilterMealDb(ingredients, matchAll);
       }
       if (ingredients == null || ingredients.isEmpty()) return java.util.List.of();
-      StringBuilder sb = new StringBuilder(baseUrl).append("/filter?match=")
+      StringBuilder sb = new StringBuilder(getRecipesUrl()).append("/filter?match=")
           .append(matchAll ? "all" : "any");
       for (String ing : ingredients) {
         if (ing == null || ing.isBlank()) continue;
@@ -226,6 +234,25 @@ public class RecipeService {
       throw new RuntimeException("Failed to filter recipes by ingredients", e);
     }
   }
+
+    public void replaceInventory(List<gr2536.core.item.Item> items) {
+        try {
+            String body = mapper.writeValueAsString(items);
+            HttpRequest req = HttpRequest.newBuilder()
+                .uri(URI.create(getInventoryUrl()))
+                .timeout(Duration.ofSeconds(5))
+                .header("Content-Type", "application/json")
+                .PUT(HttpRequest.BodyPublishers.ofString(body))
+                .build();
+
+            HttpResponse<String> res = http.send(req, HttpResponse.BodyHandlers.ofString());
+            if (res.statusCode() != 200) {
+                throw new RuntimeException("Failed to sync fridge with backend: HTTP " + res.statusCode());
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to sync fridge with backend", e);
+        }
+    }
 
   private List<RecipeModels.RecipeCard> directFilterMealDb(List<String> ingredients, boolean matchAll) throws Exception {
     if (ingredients == null || ingredients.isEmpty()) return java.util.List.of();

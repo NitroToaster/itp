@@ -16,10 +16,16 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import gr2536.core.fridge.Fridge;
+import gr2536.core.item.Item;
+import gr2536.core.recipes.RecipeMatcher;
+
 @Service
 @RequiredArgsConstructor
 public class RecipeService {
   private final MealDbClient client;
+  private final Fridge fridge;
+  private final RecipeMatcher matcher = new RecipeMatcher();
 
   public List<RecipeCard> search(String q) {
     var resp = client.searchByName(q);
@@ -72,8 +78,8 @@ public class RecipeService {
   }
 
   /**
-   * Filter by ingredients with verification using full recipe details to compute matched count.
-   * Supports union/intersection and additional client-side constraints.
+   * Filter by ingredients with verification. Matching is computed against the current fridge
+   * contents using the core RecipeMatcher, and minMatched applies to satisfied ingredients.
    */
   public List<RecipeCardMatch> filterWithVerify(
       List<String> ingredients,
@@ -86,28 +92,93 @@ public class RecipeService {
       int offset
   ) {
     List<String> chips = normalizeChips(ingredients);
-    Set<String> candidateIds = chips.isEmpty()
-        ? seedCandidatesFromMeta(category, area, nameQuery)
-        : seedCandidatesFromChips(chips, matchAll);
+
+    System.out.println("FILTER: Received request with " + chips.size() + " ingredient chips.");
+
+    // If no chips were provided, derive candidates from the fridge contents.
+    // Use union semantics here to avoid over-restricting the result set.
+    boolean derivedFromFridge = false;
+    boolean hasFridgeItems = !fridge.listItems().isEmpty();
+    System.out.println("FILTER: Server fridge has items? " + hasFridgeItems);
+    
+    if (chips.isEmpty() && hasFridgeItems) {
+      List<String> fridgeChips = fridge.listItems().stream()
+          .map(Item::getName)
+          .filter(n -> n != null && !n.isBlank())
+          .distinct()
+          .limit(10) // Reduced from 25 to avoid API rate limits
+          .toList();
+      if (!fridgeChips.isEmpty()) {
+        chips = fridgeChips;
+        derivedFromFridge = true;
+        System.out.println("FILTER: Using " + chips.size() + " ingredients from synced fridge: " + String.join(", ", chips));
+      }
+    }
+
+    Set<String> candidateIds;
+    if (chips.isEmpty()) {
+      candidateIds = seedCandidatesFromMeta(category, area, nameQuery);
+    } else {
+      boolean useAll = derivedFromFridge ? false : matchAll; // union when derived from fridge
+      Set<String> chipCandidates = seedCandidatesFromChips(chips, useAll);
+      
+      // If meta filters (category/area/name) are specified, intersect with those candidates
+      boolean hasMetaFilters = (category != null && !category.isBlank()) 
+                             || (area != null && !area.isBlank()) 
+                             || (nameQuery != null && !nameQuery.isBlank());
+      
+      if (hasMetaFilters) {
+        Set<String> metaCandidates = seedCandidatesFromMeta(category, area, nameQuery);
+        if (!metaCandidates.isEmpty()) {
+          chipCandidates.retainAll(metaCandidates); // intersection
+        }
+      }
+      
+      candidateIds = chipCandidates;
+    }
     if (candidateIds.isEmpty()) return List.of();
 
+    // Limit the number of candidates to verify to avoid excessive API calls
+    final int VERIFICATION_LIMIT = 30;
+    Set<String> limitedCandidates = candidateIds.stream().limit(VERIFICATION_LIMIT).collect(Collectors.toSet());
+
     Map<String, RecipeCard> light = buildLightLookup(chips);
-    var params = new FilterParams(chips, Math.max(1, minMatched), category, area, nameQuery);
-    return candidateIds.stream()
+    // When fridge is empty OR we're filtering by meta only, don't enforce minMatched
+    int effectiveMinMatched = (!hasFridgeItems || chips.isEmpty()) ? 0 : Math.max(1, minMatched);
+    var params = new FilterParams(chips, effectiveMinMatched, category, area, nameQuery);
+
+    // Verify all candidates first, then sort and paginate.
+    java.util.List<RecipeCardMatch> verified = new java.util.ArrayList<>();
+    for (String id : limitedCandidates) {
+      try {
+        // Add small delay to avoid hitting API rate limits (60 req/10s)
+        if (!verified.isEmpty()) {
+          Thread.sleep(250); // Increased delay to 250ms for more safety
+        }
+        var match = verifyAndScore(id, light, params);
+        if (match != null) {
+          verified.add(match);
+        }
+      } catch (InterruptedException e) {
+        Thread.currentThread().interrupt();
+        break;
+      } catch (Exception e) {
+        System.err.println("Failed to verify recipe '" + id + "': " + e.getMessage());
+      }
+    }
+    verified.sort((a, b) -> Integer.compare(b.matched(), a.matched()));
+
+    return verified.stream()
         .skip(Math.max(0, offset))
         .limit(Math.max(1, limit))
-        .map(id -> verifyAndScore(id, light, params))
-        .filter(java.util.Objects::nonNull)
-        .sorted((a, b) -> Integer.compare(b.matched(), a.matched()))
         .toList();
   }
 
   // -------- Helpers --------
   private static String normalize(String s) {
     if (s == null) return "";
-    String x = s.trim().toLowerCase(Locale.ROOT);
-    x = x.replace('-', ' ').replace('_', ' ');
-    x = x.replaceAll("[^a-z0-9 ]", "");
+    // Preserve original casing and characters; collapse whitespace only.
+    String x = s.trim();
     x = x.replaceAll("\\s+", " ");
     return x;
   }
@@ -129,11 +200,25 @@ public class RecipeService {
   }
 
   private Set<String> seedCandidatesFromChips(List<String> chips, boolean matchAll) {
-    List<Set<String>> perIng = chips.stream()
-        .map(client::filterByIngredient)
-        .map(MealDbMapper::toCards)
-        .map(list -> list.stream().map(RecipeCard::id).collect(Collectors.toSet()))
-        .toList();
+    List<Set<String>> perIng = new java.util.ArrayList<>();
+    for (String chip : chips) {
+      try {
+        // Add small delay to avoid hitting API rate limits (60 req/10s)
+        if (!perIng.isEmpty()) {
+          Thread.sleep(200); // 200ms delay = max 5 req/sec = 50 req/10sec (safe margin)
+        }
+        var resp = client.filterByIngredient(chip);
+        var cards = MealDbMapper.toCards(resp);
+        var ids = cards.stream().map(RecipeCard::id).collect(Collectors.toSet());
+        perIng.add(ids);
+      } catch (InterruptedException e) {
+        Thread.currentThread().interrupt();
+        break;
+      } catch (Exception e) {
+        // Log and continue with other ingredients if one fails
+        System.err.println("Failed to filter by ingredient '" + chip + "': " + e.getMessage());
+      }
+    }
     if (perIng.isEmpty()) return java.util.Set.of();
     if (matchAll) {
       Set<String> ids = new java.util.HashSet<>(perIng.get(0));
@@ -182,18 +267,26 @@ public class RecipeService {
     var detail = client.lookupById(id);
     if (detail == null || detail.meals() == null || detail.meals().isEmpty()) return null;
     var dto = MealDbMapper.toDetail(detail.meals().get(0));
-    int total = dto.ingredients() == null ? 0 : dto.ingredients().size();
-    int matched = 0;
-    if (!params.chips().isEmpty()) {
-      matched = (int) dto.ingredients().stream()
-          .map(i -> normalize(i.name()))
-          .filter(n -> !n.isBlank())
-          .filter(n -> params.chips().contains(n) || synonyms(n).stream().anyMatch(params.chips()::contains))
-          .distinct()
-          .count();
-      if (matched < params.minMatched()) return null;
-    }
     if (!passesConstraints(dto, params.category(), params.area(), params.nameQuery())) return null;
+
+    // Build core recipe, compute match vs current fridge items
+    var coreRecipe = RecipeDomainMapper.toCoreRecipe(dto);
+    List<Item> fridgeItems = fridge.listItems();
+    
+    // If fridge is empty, treat all recipes as having 0 matched ingredients
+    int matched = 0;
+    int total = coreRecipe.getIngredients().size();
+    
+    if (!fridgeItems.isEmpty()) {
+      var matches = matcher.findMatches(java.util.List.of(coreRecipe), fridgeItems);
+      if (matches.isEmpty()) return null;
+      var match = matches.get(0);
+      matched = match.getMatchedIngredients();
+      total = match.getTotalIngredients();
+    }
+    
+    if (matched < params.minMatched()) return null;
+
     var base = light.getOrDefault(id, new RecipeCard(id, dto.title(), dto.image()));
     return new RecipeCardMatch(base.id(), base.title(), base.image(), matched, total);
   }
