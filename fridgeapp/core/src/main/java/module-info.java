@@ -6,6 +6,7 @@ module gr2536.core {
 
     exports gr2536.core.item;
     exports gr2536.core.fridge;
+    exports gr2536.core.recipes;
     exports gr2536.core.shoppingList;
     exports gr2536.core.utils;
     
