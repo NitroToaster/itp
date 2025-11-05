@@ -22,6 +22,7 @@ import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.layout.FlowPane;
 import javafx.stage.Stage;
+import javafx.stage.Window;
 
 public class RecipeController {
 
@@ -237,12 +238,7 @@ public class RecipeController {
     }
 
     private void addRecipeCard(RecipeModels.RecipeCard cardData) {
-        Image image = new Image(cardData.image(), true);
-        ImageView imageView = new ImageView(image);
-        imageView.setFitWidth(160);
-        imageView.setFitHeight(120);
-        imageView.setPreserveRatio(true);
-        imageView.setSmooth(true);
+        ImageView imageView = buildImageView(cardData.image());
 
         Label title = new Label(cardData.title());
         title.getStyleClass().add("recipe-title");
@@ -257,12 +253,7 @@ public class RecipeController {
     }
 
     private void addRecipeCardWithBadge(RecipeModels.RecipeCardMatch cardData) {
-        Image image = new Image(cardData.image(), true);
-        ImageView imageView = new ImageView(image);
-        imageView.setFitWidth(160);
-        imageView.setFitHeight(120);
-        imageView.setPreserveRatio(true);
-        imageView.setSmooth(true);
+        ImageView imageView = buildImageView(cardData.image());
 
         Label title = new Label(cardData.title() + " (" + cardData.matched() + "/" + cardData.total() + ")");
         title.getStyleClass().add("recipe-title");
@@ -276,17 +267,36 @@ public class RecipeController {
         recipeContainer.getChildren().add(card);
     }
 
+    private ImageView buildImageView(String imageUrl) {
+        ImageView imageView = new ImageView();
+        imageView.setFitWidth(160);
+        imageView.setFitHeight(120);
+        imageView.setPreserveRatio(true);
+        imageView.setSmooth(true);
+        if (imageUrl != null && !imageUrl.isBlank()) {
+            try {
+                imageView.setImage(new Image(imageUrl, true));
+            } catch (IllegalArgumentException ignored) {
+                // Leave image empty if the URL is invalid.
+            }
+        }
+        return imageView;
+    }
+
     private void showRecipeDetails(String recipeId) {
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/gr2536/fxui/RecipeDetail.fxml"));
+            FXMLLoader loader = new FXMLLoader(RecipeController.class.getResource("/gr2536/fxui/RecipeDetail.fxml"));
             Parent root2 = loader.load();
             RecipeDetailController ctrl = loader.getController();
             ctrl.setRecipeId(recipeId);
             ctrl.load();
 
             Scene scene = new Scene(root2);
-            scene.getStylesheets().add(getClass().getResource("/gr2536/fxui/FridgeApp.css").toExternalForm());
-            Stage stage = (Stage) root.getScene().getWindow();
+            scene.getStylesheets().add(RecipeController.class.getResource("/gr2536/fxui/FridgeApp.css").toExternalForm());
+            Window window = root != null && root.getScene() != null ? root.getScene().getWindow() : null;
+            if (!(window instanceof Stage stage)) {
+                return;
+            }
             stage.setScene(scene);
             stage.setTitle("Recipe Details");
         } catch (Exception ex) {
@@ -307,5 +317,3 @@ public class RecipeController {
         }
     }
 }
-
-

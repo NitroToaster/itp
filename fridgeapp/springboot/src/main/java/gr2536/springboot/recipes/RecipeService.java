@@ -11,6 +11,7 @@ import gr2536.springboot.recipes.mealDb.MealDbClient;
 import gr2536.springboot.recipes.mealDb.MealDbListResponse;
 import gr2536.springboot.recipes.mealDb.MealDbMapper;
 import lombok.RequiredArgsConstructor;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
@@ -29,6 +30,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@SuppressFBWarnings(value = "EI_EXPOSE_REP2", justification = "Spring injects shared MealDbClient and Fridge singletons")
 public class RecipeService {
   private static final Logger log = Logger.getLogger(RecipeService.class.getName());
   private static final MealDbThrottle MEAL_DB_THROTTLE = new MealDbThrottle(Duration.ofMillis(175));
@@ -184,7 +186,9 @@ public class RecipeService {
         }
       }
     }
-    if (candidateIds.isEmpty()) return List.of();
+    if (candidateIds.isEmpty()) {
+      return List.of();
+    }
 
     // Limit the number of candidates to verify to avoid excessive API calls
     Set<String> limitedCandidates = candidateIds.stream()
@@ -210,9 +214,10 @@ public class RecipeService {
     }
     verified.sort((a, b) -> Integer.compare(b.matched(), a.matched()));
 
+    int pageSize = (limit <= 0) ? verified.size() : Math.max(0, limit);
     return verified.stream()
         .skip(Math.max(0, offset))
-        .limit(Math.max(1, limit))
+        .limit(pageSize)
         .toList();
   }
 
@@ -223,14 +228,6 @@ public class RecipeService {
     String x = s.trim();
     x = x.replaceAll("\\s+", " ");
     return x;
-  }
-
-  private static List<String> synonyms(String normalized) {
-    // Minimal synonym support without external deps
-    return switch (normalized) {
-      case "bell pepper", "capsicum" -> java.util.List.of("bell pepper", "capsicum");
-      default -> java.util.List.of();
-    };
   }
 
   private static List<String> normalizeChips(List<String> ingredients) {
