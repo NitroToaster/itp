@@ -172,7 +172,7 @@
             </execution>
           </executions>
           <configuration>
-            <configLocation>google_checks.xml</configLocation> 
+            <configLocation>/config/checkstyle/simple_checks.xml</configLocation> 
             <encoding>UTF-8</encoding>
             <consoleOutput>true</consoleOutput>
             <failsOnError>false</failsOnError> 
@@ -182,7 +182,7 @@
             <dependency>
               <groupId>com.puppycrawl.tools</groupId>
               <artifactId>checkstyle</artifactId>
-              <version>10.17.0</version>
+              <version>10.20.2</version>
             </dependency>
           </dependencies>
         </plugin>
