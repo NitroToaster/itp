@@ -1,8 +1,5 @@
-// Used Github Copilot to refactor code from Fridge
-
 package gr2536.core.utils;
 
-import java.time.LocalDate;
 import java.util.Comparator;
 import java.util.Locale;
 
@@ -78,4 +75,3 @@ public final class ItemListUtils {
         return n.equals(q) || n.startsWith(q) || n.contains(q);
     }
 }
-

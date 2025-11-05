@@ -6,14 +6,13 @@ module gr2536.core {
 
     exports gr2536.core.item;
     exports gr2536.core.fridge;
+    exports gr2536.core.recipes;
     exports gr2536.core.shoppingList;
     exports gr2536.core.utils;
-    exports gr2536.core.recipes;
     
     opens gr2536.core.item to com.fasterxml.jackson.databind;
     opens gr2536.core.fridge to com.fasterxml.jackson.databind;
+    opens gr2536.core.recipes to com.fasterxml.jackson.databind;
     opens gr2536.core.shoppingList to com.fasterxml.jackson.databind;
     opens gr2536.core.utils to com.fasterxml.jackson.databind;
-    opens gr2536.core.recipes to com.fasterxml.jackson.databind;
-    
 }

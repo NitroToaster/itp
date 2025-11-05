@@ -11,4 +11,3 @@ public record Key(String name) {
         return new Key(name.trim().toLowerCase(Locale.ROOT));
     }
 }
-

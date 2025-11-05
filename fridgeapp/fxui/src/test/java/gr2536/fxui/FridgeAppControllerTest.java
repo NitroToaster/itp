@@ -4,26 +4,20 @@ import java.time.LocalDate;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 //import org.assertj.core.internal.bytebuddy.implementation.bind.annotation.IgnoreForBinding;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.testfx.framework.junit5.ApplicationTest;
-import org.testfx.framework.junit5.Init;
-import org.testfx.matcher.base.NodeMatchers;
-import static org.testfx.assertions.api.Assertions.assertThat;
 
 import gr2536.core.item.Item;
 import gr2536.core.utils.NameMatchMode;
 import gr2536.core.utils.SearchSort;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
-import javafx.scene.control.ComboBox;
 import javafx.scene.control.DatePicker;
 import javafx.scene.control.ListView;
 import javafx.scene.control.Spinner;
@@ -39,10 +33,6 @@ public class FridgeAppControllerTest extends ApplicationTest {
     private TextField nameField;
     private Spinner<Integer> quantitySpinner;
     private DatePicker expirationPicker;
-    private Button addButton;
-    private Button addOneButton;
-    private Button removeOneButton;
-    private Button removeAllButton;
     private ListView<Item> fridgeList;
     private TextField searchField;
     private Button searchButton;
@@ -68,13 +58,6 @@ public class FridgeAppControllerTest extends ApplicationTest {
 
         // Lookup controls
         
-        // nameField = lookup("#nameField").query();
-        // quantitySpinner = lookup("#quantitySpinner").query();
-        // expirationPicker = lookup("#expirationPicker").query();
-        addButton = lookup("#addButton").query();
-        // addOneButton = lookup("#addOneButton").query();
-        // removeOneButton = lookup("#removeOneButton").query();
-        // removeAllButton = lookup("#removeAllButton").query();
         fridgeList = lookup("#fridgeList").query();
         searchField = lookup("#searchField").query();
         searchButton = lookup("#searchButton").query();

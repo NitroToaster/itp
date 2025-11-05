@@ -7,6 +7,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 import gr2536.core.fridge.Fridge;
+import gr2536.core.fridge.FridgeFileManager;
 import gr2536.core.item.Item;
 import gr2536.core.utils.NameMatchMode;
 import gr2536.core.utils.SearchCriteria;
@@ -26,7 +27,6 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckBox;
-import javafx.scene.control.ComboBox;
 import javafx.scene.control.DatePicker;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.DialogPane;
@@ -44,8 +44,6 @@ import javafx.stage.Stage;
 import javafx.stage.Window;
 import javafx.animation.PauseTransition;
 import javafx.util.Duration;
-
-import gr2536.core.fridge.FridgeFileManager;
 import gr2536.data.FridgeJsonFileManager;
 
 /**
