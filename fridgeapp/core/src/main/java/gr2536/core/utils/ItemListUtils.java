@@ -8,7 +8,7 @@ import gr2536.core.item.Item;
 /**
  * Utility class for shared static methods
  */
-public class ItemListUtils {
+public final class ItemListUtils {
     public static int clampToIntMax(long value) {
         return value > Integer.MAX_VALUE ? Integer.MAX_VALUE : (int) value;
     }

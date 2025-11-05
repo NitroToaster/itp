@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.image.*?>
+<?import javafx.scene.layout.*?>
+
+<AnchorPane fx:id="root" prefWidth="1040" prefHeight="650" xmlns="http://javafx.com/javafx/17.0.2" xmlns:fx="http://javafx.com/fxml/1" fx:controller="gr2536.fxui.RecipeController">
+  <children>
+    <VBox spacing="12" AnchorPane.topAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.bottomAnchor="0">
+      <padding><Insets top="18" right="18" bottom="18" left="18"/></padding>
+      <children>
+        <HBox spacing="8" alignment="CENTER_LEFT" styleClass="workspace-toolbar">
+          <Button text="← Back" onAction="#onNavigateToFridge"/>
+          <Label text="Recipes" styleClass="header-title"/>
+        </HBox>
+        <HBox spacing="8" alignment="CENTER_LEFT">
+          <TextField fx:id="searchField" promptText="Search recipes..."/>
+          <Button text="Search" styleClass="primary" onAction="#onSearch"/>
+          <Button text="Use my fridge" onAction="#onFilterByFridge"/>
+        </HBox>
+        <TitledPane text="Filters" expanded="false">
+          <content>
+            <VBox spacing="8">
+              <padding><Insets topRightBottomLeft="8"/></padding>
+              <HBox spacing="8" alignment="CENTER_LEFT">
+                <TextField fx:id="ingredientsField" promptText="Ingredients (comma-separated)" HBox.hgrow="ALWAYS"/>
+                <Label text="Match"/>
+                <ComboBox fx:id="matchModeBox" prefWidth="120.0"/>
+                <Label text="Min matched"/>
+                <Spinner fx:id="minMatchedSpinner" prefWidth="100.0"/>
+              </HBox>
+              <HBox spacing="8" alignment="CENTER_LEFT">
+                <Label text="Category"/>
+                <ComboBox fx:id="categoryBox" prefWidth="180.0"/>
+                <Label text="Area"/>
+                <ComboBox fx:id="areaBox" prefWidth="180.0"/>
+                <Button text="Apply Filters" styleClass="primary" onAction="#onApplyFilters"/>
+                <Button text="Clear" onAction="#onClearFilters"/>
+              </HBox>
+            </VBox>
+          </content>
+        </TitledPane>
+        <Label fx:id="noResultsLabel" text="No recipes found." visible="false" managed="false"/>
+        <HBox alignment="CENTER">
+          <children>
+            <ProgressIndicator fx:id="loadingIndicator" visible="false" managed="false"/>
+          </children>
+        </HBox>
+        <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS">
+          <content>
+            <FlowPane fx:id="recipeContainer" hgap="12" vgap="12" prefWrapLength="900"/>
+          </content>
+        </ScrollPane>
+      </children>
+    </VBox>
+  </children>
+</AnchorPane>
+
+

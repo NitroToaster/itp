@@ -45,6 +45,6 @@ public final class MealDbMapper {
         }
       }
     } catch (ReflectiveOperationException ignored) {}
-    return list;
+    return List.copyOf(list);
   }
 }

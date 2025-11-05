@@ -6,6 +6,7 @@ import gr2536.springboot.fridge.dto.RemoveResult;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
+import java.util.logging.Logger;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -20,6 +21,7 @@ import java.util.List;
 public class FridgeController {
 
   private final FridgeService svc;
+  private static final Logger log = Logger.getLogger(FridgeController.class.getName());
 
   @GetMapping
   public List<Item> list() { return svc.list(); }
@@ -34,5 +36,13 @@ public class FridgeController {
   public ResponseEntity<RemoveResult> remove(@PathVariable String name, @RequestParam("qty") @Positive int qty) {
     int remaining = svc.remove(name, qty);
     return ResponseEntity.ok(new RemoveResult(name, remaining));
+  }
+
+  @PutMapping
+  @ResponseStatus(HttpStatus.OK)
+  public List<Item> replace(@RequestBody List<Item> items) {
+      log.info(String.format("SYNC: Replacing server fridge with %d items from UI.", items == null ? 0 : items.size()));
+      svc.replace(items);
+      return svc.list();
   }
 }

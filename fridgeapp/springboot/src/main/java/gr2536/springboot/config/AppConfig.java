@@ -21,7 +21,7 @@ public class AppConfig {
   CorsConfigurationSource corsConfigurationSource() {
     var cors = new CorsConfiguration();
     cors.setAllowedOrigins(List.of("http://localhost:5173"));
-    cors.setAllowedMethods(List.of("GET","POST","PATCH","DELETE","OPTIONS"));
+    cors.setAllowedMethods(List.of("GET","POST","PUT","PATCH","DELETE","OPTIONS","HEAD"));
     cors.setAllowedHeaders(List.of("*"));
     var source = new UrlBasedCorsConfigurationSource();
     source.registerCorsConfiguration("/**", cors);

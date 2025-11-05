@@ -139,3 +139,4 @@ public class ShoppingList implements ItemList {
         return search(new SearchCriteria(null, NameMatchMode.CONTAINS, null, null, null, until, true, SearchSort.DEFAULT));
     }
 }
+

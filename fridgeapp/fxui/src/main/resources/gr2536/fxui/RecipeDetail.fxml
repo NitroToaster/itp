@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.image.*?>
+<?import javafx.scene.layout.*?>
+
+<AnchorPane fx:id="root" prefWidth="1040" prefHeight="650" xmlns="http://javafx.com/javafx/17.0.2" xmlns:fx="http://javafx.com/fxml/1" fx:controller="gr2536.fxui.RecipeDetailController">
+  <children>
+    <VBox spacing="12" AnchorPane.topAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.bottomAnchor="0">
+      <padding><Insets top="18" right="18" bottom="18" left="18"/></padding>
+      <children>
+        <HBox spacing="8" alignment="CENTER_LEFT">
+          <Button text="← Back" onAction="#onBack"/>
+          <Label fx:id="titleLabel" styleClass="header-title" text="Recipe"/>
+        </HBox>
+        <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS">
+          <content>
+            <VBox spacing="12" prefWidth="900">
+              <ImageView fx:id="imageView" fitWidth="360" preserveRatio="true"/>
+              <HBox spacing="12" alignment="CENTER_LEFT">
+                <Label fx:id="metaLabel" wrapText="true"/>
+                <CheckBox fx:id="hideAvailableCheck" text="Hide available"/>
+              </HBox>
+              <HBox spacing="8" alignment="CENTER_LEFT">
+                <Label text="Ingredients" styleClass="section-header"/>
+                <Button fx:id="addMissingButton" text="Add missing to shopping list" styleClass="primary" onAction="#onAddMissingToShoppingList"/>
+              </HBox>
+              <ListView fx:id="ingredientsList" prefHeight="220"/>
+              <Label text="Instructions" styleClass="section-header"/>
+              <TextArea fx:id="instructionsArea" wrapText="true" editable="false" prefRowCount="12"/>
+            </VBox>
+          </content>
+        </ScrollPane>
+      </children>
+    </VBox>
+  </children>
+</AnchorPane>
+
+

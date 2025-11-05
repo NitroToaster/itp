@@ -24,6 +24,7 @@
             <Label text="Overview" styleClass="sidebar-heading"/>
             <Button fx:id="navFridgeButton" text="Fridge Overview" styleClass="sidebar-button" onAction="#onNavigateToFridge"/>
             <Button fx:id="shoppingListButton" text="Shopping List" styleClass="sidebar-button" onAction="#onNavigateToShoppingList"/>
+            <Button text="Recipes" styleClass="sidebar-button" onAction="#onNavigateToRecipes"/>
           </VBox>
 
           <VBox spacing="6" styleClass="sidebar-group">

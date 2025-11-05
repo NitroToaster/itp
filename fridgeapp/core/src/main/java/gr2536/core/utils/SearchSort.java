@@ -10,4 +10,3 @@ public enum SearchSort {
     QUANTITY_DESC
 }
 
-
