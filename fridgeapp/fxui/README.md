@@ -14,3 +14,30 @@ Future updates plan to include advanced features to make cooking even easier. Th
 
 ![Shopping List](/docs/release2/screenshots/screenshot3.png)
 
+
+## Running & Configuration
+
+- Backend (Spring Boot):
+  - `RECIPES_MEALDB_BASE_URL` (default: `https://www.themealdb.com/api/json/v1/1`)
+  - Start: `cd fridgeapp/springboot && mvn spring-boot:run`
+
+- FX UI:
+  - `RECIPES_API_BASE_URL` (default: `http://localhost:8080/api/v1/recipes`)
+  - `RECIPES_API_DIRECT` (optional, `1` to use MealDB directly for debugging)
+  - Start: `cd fridgeapp && mvn -pl fxui -am javafx:run`
+
+## Recipes Filters
+
+- Filters pane provides:
+  - Ingredients (comma-separated)
+  - Match: All | Any
+  - Min matched (minimum ingredient overlaps)
+  - Category and Area (from backend `/meta`)
+  - Name search
+
+- "Use my fridge":
+  - Finds recipes that include at least one ingredient you have.
+  - Cards show a badge: `have/total` (ingredients you have out of recipe ingredients).
+
+If category/area alone are used, leave Ingredients empty and click Apply. Ensure backend is running.
+

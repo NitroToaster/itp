@@ -1,0 +1,15 @@
+package gr2536.core.item;
+
+import java.util.*;
+
+public interface ItemList {
+
+    void add(Item item);
+
+    int remove(String name, int quantityToRemove);
+
+    int getQuantity(String name);
+
+    List<Item> listItems();
+}
+

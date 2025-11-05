@@ -2,7 +2,7 @@ package gr2536.fxui;
 
 import java.time.LocalDate;
 
-import gr2536.core.Item;
+import gr2536.core.item.Item;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.BooleanBinding;
 import javafx.css.PseudoClass;

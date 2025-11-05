@@ -1,0 +1,14 @@
+server:
+  port: ${SERVER_PORT:8080}
+
+fridge:
+  file: ./data/fridge.json
+
+recipes:
+  mealdb:
+    base-url: ${RECIPES_MEALDB_BASE_URL:https://www.themealdb.com/api/json/v1/1}
+
+spring:
+  mvc:
+    problemdetails:
+      enabled: true

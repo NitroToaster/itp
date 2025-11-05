@@ -1,2 +1,6 @@
 .vscode
 node_modules/
+
+# Codacy configuration files
+.codacy/
+.cursor/rules/codacy.mdc

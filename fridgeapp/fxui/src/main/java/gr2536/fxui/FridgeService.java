@@ -1,6 +1,6 @@
 package gr2536.fxui;
 
-import gr2536.core.Fridge;
+import gr2536.core.fridge.Fridge;
 
 /**
  * Shared service to manage the Fridge instance across different UI controllers.

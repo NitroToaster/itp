@@ -10,9 +10,23 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import gr2536.core.fridge.Fridge;
+import gr2536.core.fridge.FridgeFileManager;
+import gr2536.core.item.Item;
+import gr2536.core.utils.NameMatchMode;
+import gr2536.core.utils.SearchCriteria;
+import gr2536.core.utils.SearchSort;
+
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
+
+import gr2536.core.fridge.Fridge;
+import gr2536.core.fridge.FridgeFileManager;
+import gr2536.core.item.Item;
+import gr2536.core.utils.NameMatchMode;
+import gr2536.core.utils.SearchCriteria;
+import gr2536.core.utils.SearchSort;
 
 public class FridgeTest {
 
@@ -81,7 +95,19 @@ public class FridgeTest {
         assertEquals(List.of(
             new Item("Butter", 2, LocalDate.of(2025, 9, 21)), 
             new Item("Milk", 1, LocalDate.of(2025, 9, 20))), 
-            fridge.listItems());   
+            fridge.listItems());
+        
+        fridge.add(new Item("Milk", 2, LocalDate.of(2025, 9, 20)));
+        fridge.add(new Item("Milk", 3, LocalDate.of(2025, 9, 22)));
+        int remaining = fridge.remove("Milk", 5);
+        assertEquals(1, remaining);
+        List<Item> items = fridge.listItems();
+        assertTrue(items.stream().anyMatch(i -> 
+            i.getName().equals("Milk") && i.getQuantity() == 1 && i.getExpirationDate().equals(LocalDate.of(2025, 9, 22))
+        ));
+        int removedAll = fridge.remove("Milk", 10);
+        assertEquals(0, removedAll);
+        assertTrue(fridge.listItems().stream().noneMatch(i -> i.getName().equals("Milk")));
     }
 
 
@@ -98,27 +124,36 @@ public class FridgeTest {
         assertEquals(3, (int) fridge.getQuantity("Milk"));
     }
         
-
-    //SEARCH/FILTER TESTS
-
+    /*
+     * Tests search by name contains.
+     */
     @Test
     public void searchByNameContainsTest() {
         List<Item> result = fridge.search(new SearchCriteria("mi", NameMatchMode.CONTAINS, null, null, null, null, true, SearchSort.DEFAULT));
         assertEquals(List.of(new Item("Milk", 1, LocalDate.of(2025, 9, 20))), result);
     }
 
+    /*
+     * Tests search by minimum quantity.
+     */
     @Test
     public void searchByMinQuantityTest() {
         List<Item> result = fridge.search(new SearchCriteria(null, null, 2, null, null, null, true, null));
         assertEquals(List.of(new Item("Butter", 2, LocalDate.of(2025, 9, 21))), result);
     }
 
+    /*
+     * Tests search by expiration date from.
+     */
     @Test
     public void searchByExpirationFromTest() {
         List<Item> result = fridge.search(new SearchCriteria(null, null, null, null, LocalDate.of(2025, 9, 21), null, true, null));
         assertEquals(List.of(new Item("Butter", 2, LocalDate.of(2025, 9, 21))), result);
     }
 
+    /**
+     * Tests search sort by expiration date ascending.
+     */
     @Test
     public void searchSortByExpirationDescTest() {
         fridge.add(item2);
@@ -332,7 +367,7 @@ public class FridgeTest {
         );
         
         List<Item> result = fridge.search(criteria);
-        assertEquals(3, result.size()); // Butter, Juice, and Milk from setup
+        assertEquals(3, result.size());
     }
 
     /**
@@ -340,8 +375,8 @@ public class FridgeTest {
      */
     @Test
     public void searchWithQuantityRangeTest() {
-        fridge.add(item2); // Milk total 3
-        fridge.add(item4); // Juice 1
+        fridge.add(item2); 
+        fridge.add(item4); 
         
         // Search for items with 1-2 units
         SearchCriteria criteria = new SearchCriteria(
@@ -382,7 +417,7 @@ public class FridgeTest {
         );
         
         List<Item> result = fridge.search(criteria);
-        assertEquals(2, result.size()); // Milk and Butter
+        assertEquals(2, result.size()); 
     }
 
     /**
@@ -465,6 +500,7 @@ public class FridgeTest {
         verify(mockFileManager, times(1)).saveFridgeData(fridgeWithMock, "mockfile.json");  
     
     }
+
     /**
     * Tests that setting a file manager enables saving on modifications.
     */
@@ -517,6 +553,9 @@ public class FridgeTest {
         verify(mockFileManager, never()).saveFridgeData(any(), anyString());
     }
 
+    /**
+     * Tests that save method calls file manager's save method when both file manager and file name are set.
+     */
     @Test
     public void saveMethodTest() {
         FridgeFileManager mockFileManager = mock(FridgeFileManager.class);
@@ -534,4 +573,45 @@ public class FridgeTest {
         Fridge fridgeNoFile = new Fridge(mockFileManager, null);
         fridgeNoFile.add(new Item("Grapes", 4, LocalDate.now().plusDays(6)));
     }
+
+    /**
+     * Tests searchWithAllModes method with various combinations of parameters.
+     */
+    @Test
+    public void searchWithAllModesTest() {
+        fridge.add(new Item("Yogurt", 2, LocalDate.of(2025, 9, 19)));
+        fridge.add(new Item("Cheese", 5, LocalDate.of(2025, 9, 22)));
+        fridge.add(new Item("Milk", 3, LocalDate.of(2025, 9, 21)));
+        fridge.add(new Item("Cream", 1, null));
+
+        List<Item> result1 = fridge.searchWithAllModes("Milk", 2, 4, LocalDate.of(2025, 9, 20), LocalDate.of(2025, 9, 22), true, SearchSort.DEFAULT);
+        assertEquals(1, result1.size());
+        assertEquals("Milk", result1.get(0).getName());
+
+        List<Item> result2 = fridge.searchWithAllModes("Milk", 2, 4, LocalDate.of(2025, 9, 20), LocalDate.of(2025, 9, 22), false, SearchSort.DEFAULT);
+        assertEquals(1, result2.size());
+        assertEquals("Milk", result2.get(0).getName());
+
+        List<Item> result3 = fridge.searchWithAllModes(null, null, null, LocalDate.of(2025, 9, 21), null, true, SearchSort.DEFAULT);
+        assertTrue(result3.stream().allMatch(i -> i.getExpirationDate() == null || !i.getExpirationDate().isBefore(LocalDate.of(2025, 9, 21))));
+
+        List<Item> result4 = fridge.searchWithAllModes(null, null, null, null, LocalDate.of(2025, 9, 20), true, SearchSort.DEFAULT);
+        assertTrue(result4.stream().allMatch(i -> i.getExpirationDate() == null || !i.getExpirationDate().isAfter(LocalDate.of(2025, 9, 20))));
+
+        List<Item> result5 = fridge.searchWithAllModes(null, 6, null, null, null, true, SearchSort.DEFAULT);
+        assertTrue(result5.isEmpty());
+
+        List<Item> result6 = fridge.searchWithAllModes(" ", null, null, null, null, true, SearchSort.DEFAULT);
+        assertFalse(result6.isEmpty());
+
+        List<Item> result7 = fridge.searchWithAllModes(null, null, null, null, LocalDate.of(2025, 9, 25), false, SearchSort.DEFAULT);
+        assertTrue(result7.stream().noneMatch(i -> i.getExpirationDate() == null));
+    
+        List<Item> result8 = fridge.searchWithAllModes(null, null, null, LocalDate.of(2025, 9, 20), null, false, SearchSort.DEFAULT);
+        assertTrue(result8.stream().noneMatch(i -> i.getExpirationDate() == null));
+    
+        List<Item> result9 = fridge.searchWithAllModes(null, null, 2, null, null, true, SearchSort.DEFAULT);
+        assertTrue(result9.stream().allMatch(i -> i.getQuantity() <= 2));
+    }
+
 }
