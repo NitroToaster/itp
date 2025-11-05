@@ -5,6 +5,8 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import java.net.URI;
 import java.net.URLEncoder;
 import java.net.http.HttpClient;
@@ -28,6 +30,8 @@ public class RecipeService {
         this.baseUrl = baseUrl.endsWith("/") ? baseUrl.substring(0, baseUrl.length() - 1) : baseUrl;
         this.http = HttpClient.newHttpClient();
         this.mapper = new ObjectMapper();
+        this.mapper.registerModule(new JavaTimeModule());
+        this.mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
         this.directMealDbMode = resolveDirectMode();
         this.mealDbBaseUrl = resolveMealDbBaseUrl();
     }
@@ -386,5 +390,4 @@ public class RecipeService {
         return out;
     }
 }
-
 

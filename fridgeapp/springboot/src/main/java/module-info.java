@@ -13,6 +13,7 @@ module gr2536.springboot {
     requires spring.beans;
     requires spring.web;
     requires spring.core;
+    requires java.logging;
 
     requires jakarta.annotation;  
     requires jakarta.validation;
@@ -21,5 +22,5 @@ module gr2536.springboot {
 
     requires static lombok;
 
-    opens gr2536.springboot to spring.core, spring.beans, spring.context, spring.web, spring.aop;
+    opens gr2536.springboot to spring.core, spring.beans, spring.context, spring.web;
 }

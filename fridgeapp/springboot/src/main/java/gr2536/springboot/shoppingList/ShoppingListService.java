@@ -31,9 +31,12 @@ public class ShoppingListService {
   }
 
   public void moveAllToFridge(boolean clearAfter) {
-    list.addToFridge(fridge);
-    if (!clearAfter) {
-      
+    if (clearAfter) {
+      list.addToFridge(fridge);
+      return;
     }
+
+    // Copy items to the fridge but keep them on the shopping list when clearAfter is false.
+    list.listItems().forEach(fridge::add);
   }
 }

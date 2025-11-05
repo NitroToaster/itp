@@ -11,6 +11,7 @@ module gr2536.fxui {
     requires com.fasterxml.jackson.databind;
     requires com.fasterxml.jackson.core;
     requires com.fasterxml.jackson.annotation;
+    requires com.fasterxml.jackson.datatype.jsr310;
 
     opens gr2536.fxui to javafx.fxml;
     exports gr2536.fxui;
