@@ -6,7 +6,13 @@ import gr2536.springboot.recipes.dto.RecipeCardMatch;
 import gr2536.springboot.recipes.dto.RecipeMeta;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
@@ -25,7 +31,9 @@ public class RecipesController {
   @GetMapping("/{id}")
   public RecipeDetails one(@PathVariable String id) {
     var dto = svc.byId(id);
-    if (dto == null) throw new RecipeNotFound(id);
+    if (dto == null) {
+      throw new RecipeNotFound(id);
+    }
     return dto;
   }
 
@@ -68,6 +76,8 @@ public class RecipesController {
   void notFound() {}
 
   static class RecipeNotFound extends RuntimeException {
-    RecipeNotFound(String id) { super("Recipe not found: " + id); }
+    RecipeNotFound(String id) {
+      super("Recipe not found: " + id);
+    }
   }
 }

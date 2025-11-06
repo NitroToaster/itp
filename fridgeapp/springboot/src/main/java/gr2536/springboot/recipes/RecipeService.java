@@ -47,9 +47,13 @@ public class RecipeService {
   public RecipeDetails byId(String id) {
     MEAL_DB_THROTTLE.acquire();
     var resp = client.lookupById(id);
-    if (resp == null) return null;
+    if (resp == null) {
+      return null;
+    }
     var meals = resp.meals();
-    if (meals.isEmpty()) return null;
+    if (meals.isEmpty()) {
+      return null;
+    }
     return MealDbMapper.toDetail(meals.get(0));
   }
 
@@ -60,7 +64,9 @@ public class RecipeService {
 
     Map<String, List<RecipeCard>> perIngredient = new LinkedHashMap<>();
     for (String raw : ingredients) {
-      if (raw == null || raw.isBlank()) continue;
+      if (raw == null || raw.isBlank()) {
+        continue;
+      }
       String ingredient = raw.trim();
       try {
         MEAL_DB_THROTTLE.acquire();
@@ -75,7 +81,9 @@ public class RecipeService {
       }
     }
 
-    if (perIngredient.isEmpty()) return List.of();
+    if (perIngredient.isEmpty()) {
+      return List.of();
+    }
 
     List<Set<String>> idSets = new ArrayList<>();
     for (List<RecipeCard> cards : perIngredient.values()) {
@@ -87,7 +95,9 @@ public class RecipeService {
       }
     }
 
-    if (idSets.isEmpty()) return List.of();
+    if (idSets.isEmpty()) {
+      return List.of();
+    }
 
     Set<String> resultIds;
     if (matchAll) {
@@ -107,7 +117,9 @@ public class RecipeService {
       resultIds = union;
     }
 
-    if (resultIds.isEmpty()) return List.of();
+    if (resultIds.isEmpty()) {
+      return List.of();
+    }
 
     Map<String, RecipeCard> lookup = perIngredient.values().stream()
         .flatMap(List::stream)
@@ -237,11 +249,17 @@ public class RecipeService {
         try {
           MEAL_DB_THROTTLE.acquire();
           var detail = client.lookupById(id);
-          if (detail == null) continue;
+          if (detail == null) {
+            continue;
+          }
           var meals = detail.meals();
-          if (meals.isEmpty()) continue;
+          if (meals.isEmpty()) {
+            continue;
+          }
           var dto = MealDbMapper.toDetail(meals.get(0));
-          if (!passesConstraints(dto, params.category(), params.area(), params.nameQuery())) continue;
+          if (!passesConstraints(dto, params.category(), params.area(), params.nameQuery())) {
+            continue;
+          }
           
           // Get ingredient count from the recipe
           ingredientCount = dto.ingredients() != null ? dto.ingredients().size() : 0;
@@ -253,7 +271,9 @@ public class RecipeService {
         } catch (Exception e) {
           log.log(Level.FINE, String.format("Failed to fetch recipe '%s' in fast path: %s", id, e.getMessage()));
           // If fetch fails but we have a card, use it with 0 count
-          if (card == null) continue;
+          if (card == null) {
+            continue;
+          }
         }
         
         if (satisfiedBeforeOffset < safeOffset) {
@@ -305,7 +325,9 @@ public class RecipeService {
 
   // -------- Helpers --------
   private static String normalize(String s) {
-    if (s == null) return "";
+    if (s == null) {
+      return "";
+    }
     // Preserve original casing and characters; collapse whitespace only.
     String x = s.trim();
     x = x.replaceAll("\\s+", " ");
@@ -335,7 +357,9 @@ public class RecipeService {
         log.log(Level.FINE, String.format("Filter-by-ingredient failure for '%s'", chip), e);
       }
     }
-    if (perIngredient.isEmpty()) return new SeedCandidates(Set.of(), Map.of());
+    if (perIngredient.isEmpty()) {
+      return new SeedCandidates(Set.of(), Map.of());
+    }
 
     List<Set<String>> idSets = new ArrayList<>();
     for (List<RecipeCard> cards : perIngredient.values()) {
@@ -346,7 +370,9 @@ public class RecipeService {
         idSets.add(ids);
       }
     }
-    if (idSets.isEmpty()) return new SeedCandidates(Set.of(), Map.of());
+    if (idSets.isEmpty()) {
+      return new SeedCandidates(Set.of(), Map.of());
+    }
 
     Set<String> ids;
     if (matchAll) {
@@ -425,10 +451,18 @@ public class RecipeService {
     }
 
     List<Set<String>> nonEmpty = new ArrayList<>();
-    if (!byName.isEmpty()) nonEmpty.add(byName);
-    if (!byCat.isEmpty()) nonEmpty.add(byCat);
-    if (!byArea.isEmpty()) nonEmpty.add(byArea);
-    if (nonEmpty.isEmpty()) return new SeedCandidates(Set.of(), Map.of());
+    if (!byName.isEmpty()) {
+      nonEmpty.add(byName);
+    }
+    if (!byCat.isEmpty()) {
+      nonEmpty.add(byCat);
+    }
+    if (!byArea.isEmpty()) {
+      nonEmpty.add(byArea);
+    }
+    if (nonEmpty.isEmpty()) {
+      return new SeedCandidates(Set.of(), Map.of());
+    }
 
     LinkedHashSet<String> ids = new LinkedHashSet<>(nonEmpty.get(0));
     for (int i = 1; i < nonEmpty.size(); i++) {
@@ -466,11 +500,17 @@ public class RecipeService {
   ) {
     MEAL_DB_THROTTLE.acquire();
     var detail = client.lookupById(id);
-    if (detail == null) return null;
+    if (detail == null) {
+      return null;
+    }
     var meals = detail.meals();
-    if (meals.isEmpty()) return null;
+    if (meals.isEmpty()) {
+      return null;
+    }
     var dto = MealDbMapper.toDetail(meals.get(0));
-    if (!passesConstraints(dto, params.category(), params.area(), params.nameQuery())) return null;
+    if (!passesConstraints(dto, params.category(), params.area(), params.nameQuery())) {
+      return null;
+    }
 
     // Build core recipe, compute match vs current fridge items
     var coreRecipe = RecipeDomainMapper.toCoreRecipe(dto);
@@ -481,13 +521,17 @@ public class RecipeService {
     
     if (!fridgeItems.isEmpty()) {
       var matches = matcher.findMatches(List.of(coreRecipe), fridgeItems);
-      if (matches.isEmpty()) return null;
+      if (matches.isEmpty()) {
+        return null;
+      }
       var match = matches.get(0);
       matched = match.getMatchedIngredients();
       total = match.getTotalIngredients();
     }
     
-    if (matched < params.minMatched()) return null;
+    if (matched < params.minMatched()) {
+      return null;
+    }
 
     var base = light.getOrDefault(id, new RecipeCard(id, dto.title(), dto.image()));
     return new RecipeCardMatch(base.id(), base.title(), base.image(), matched, total);
@@ -495,13 +539,19 @@ public class RecipeService {
 
   private boolean passesConstraints(RecipeDetails dto, String category, String area, String nameQuery) {
     if (category != null && !category.isBlank()) {
-      if (dto.category() == null || !dto.category().equalsIgnoreCase(category)) return false;
+      if (dto.category() == null || !dto.category().equalsIgnoreCase(category)) {
+        return false;
+      }
     }
     if (area != null && !area.isBlank()) {
-      if (dto.area() == null || !dto.area().equalsIgnoreCase(area)) return false;
+      if (dto.area() == null || !dto.area().equalsIgnoreCase(area)) {
+        return false;
+      }
     }
     if (nameQuery != null && !nameQuery.isBlank()) {
-      if (dto.title() == null || !dto.title().toLowerCase(Locale.ROOT).contains(nameQuery.toLowerCase(Locale.ROOT))) return false;
+      if (dto.title() == null || !dto.title().toLowerCase(Locale.ROOT).contains(nameQuery.toLowerCase(Locale.ROOT))) {
+        return false;
+      }
     }
     return true;
   }
@@ -532,7 +582,9 @@ public class RecipeService {
   }
 
   private static List<String> extract(MealDbListResponse r, boolean isCategory) {
-    if (r == null || r.meals() == null) return List.of();
+    if (r == null || r.meals() == null) {
+      return List.of();
+    }
     return r.meals().stream()
         .map(v -> isCategory ? v.strCategory() : v.strArea())
         .filter(s -> s != null && !s.isBlank())

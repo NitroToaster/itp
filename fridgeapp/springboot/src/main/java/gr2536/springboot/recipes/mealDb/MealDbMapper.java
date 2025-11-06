@@ -12,9 +12,13 @@ public final class MealDbMapper {
   private MealDbMapper(){}
 
   public static List<RecipeCard> toCards(MealDbSearchResponse r) {
-    if (r == null) return List.of();
+    if (r == null) {
+      return List.of();
+    }
     var meals = r.meals();
-    if (meals.isEmpty()) return List.of();
+    if (meals.isEmpty()) {
+      return List.of();
+    }
     return meals.stream()
         .map(m -> new RecipeCard(m.idMeal(), m.strMeal(), m.strMealThumb()))
         .toList();
@@ -46,7 +50,9 @@ public final class MealDbMapper {
           list.add(new IngredientDto(name.trim(), measure == null ? "" : measure.trim()));
         }
       }
-    } catch (ReflectiveOperationException ignored) {}
+    } catch (ReflectiveOperationException ignored) {
+      // Expected when ingredient count exceeds 20
+    }
     return List.copyOf(list);
   }
 }
