@@ -1,89 +1,55 @@
 import { api } from './api';
-import { addItemApi as addFridgeItemApi } from './FridgeService'; // used when marking bought
 
-// simulated latency helper
-const delay = ms => new Promise(res => setTimeout(res, ms));
-
-// shopping mock store
-const LS_KEY = 'shopping_mock_store_v1';
-const seed = [
-  { id: 1, name: 'Butter', qty: 1, note: 'Salted' },
-  { id: 2, name: 'Tomatoes', qty: 4, note: '' }
-];
-
-function loadStore() {
-  try {
-    const raw = localStorage.getItem(LS_KEY);
-    return raw ? JSON.parse(raw) : seed.slice();
-  } catch {
-    return seed.slice();
-  }
-}
-function saveStore(items) {
-  try { localStorage.setItem(LS_KEY, JSON.stringify(items)); } catch {}
+// Backend <-> frontend field mapping helpers
+function backendToFrontend(it, idx) {
+  return {
+    id: it.id ?? it.name ?? `shopping-list-${idx}-${String(Math.random()).slice(2)}`,
+    name: it.name,
+    qty: it.quantity ?? 0
+  };
 }
 
-// detect mock mode (same detection as FridgeService)
-const useMock = !api.defaults.baseURL || api.defaults.baseURL === 'mock';
+function frontendToBackend(it) {
+  return {
+    name: it.name,
+    quantity: it.qty ?? 0
+  };
+}
 
-/**
- * Fetch shopping list items.
- * Backend: GET /shopping
- * Mock: returns localStorage list
- */
 export async function fetchShoppingItems() {
-  if (useMock) {
-    await delay(160);
-    return loadStore();
-  }
   try {
-    const res = await api.get('/shopping');
-    return res.data?.content ?? res.data;
+    const res = await api.get('/shopping-list/items'); // FIXED: added /items
+    const payload = res.data ?? [];
+    const list = Array.isArray(payload) ? payload : (payload.items ?? payload.content ?? []);
+    return (list || []).map((it, idx) => backendToFrontend(it, idx));
   } catch (e) {
     console.error('fetchShoppingItems error', e);
     return [];
   }
 }
 
-/**
- * Add an item to the shopping list.
- * Backend: POST /shopping
- * Mock: persist to localStorage
- */
 export async function addShoppingItem(item) {
-  if (useMock) {
-    await delay(120);
-    const items = loadStore();
-    const id = Date.now();
-    const newItem = { id, ...item };
-    items.push(newItem);
-    saveStore(items);
-    return newItem;
-  }
   try {
-    const res = await api.post('/shopping', item);
-    return res.data;
+    const body = frontendToBackend(item);
+    const res = await api.post('/shopping-list/items', body);
+    const created = res.data;
+    if (!created) return backendToFrontend(item);
+    return backendToFrontend(created);
   } catch (e) {
     console.error('addShoppingItem error', e);
     throw e;
   }
 }
 
-/**
- * Remove item from shopping list.
- * Backend: DELETE /shopping/{id}
- * Mock: remove from localStorage
- */
-export async function removeShoppingItem(id) {
-  if (useMock) {
-    await delay(120);
-    let items = loadStore();
-    items = items.filter(i => i.id !== id);
-    saveStore(items);
-    return { ok: true };
-  }
+export async function removeShoppingItem(itemId) {
   try {
-    const res = await api.delete(`/shopping/${id}`);
+    const items = await fetchShoppingItems();
+    const found = items.find(i => String(i.id) === String(itemId));
+    const name = found ? found.name : itemId;
+    if (!name) throw new Error('Unable to resolve item name for delete');
+    const res = await api.delete(`/shopping-list/items/${encodeURIComponent(name)}`, { 
+      params: { qty: found?.qty || 1 } 
+    });
     return res.data;
   } catch (e) {
     console.error('removeShoppingItem error', e);
@@ -91,36 +57,41 @@ export async function removeShoppingItem(id) {
   }
 }
 
-/**
- * Mark shopping item as bought:
- * - Backend: POST /shopping/{id}/bought (or similar) — server can move/add to fridge
- * - Mock: remove from shopping list and add to fridge using FridgeService.addItemApi
- *
- * Returns whatever backend/mock returns.
- */
-export async function markBought(id) {
-  if (useMock) {
-    await delay(160);
-    const items = loadStore();
-    const idx = items.findIndex(i => i.id === id);
-    if (idx === -1) return { ok: false };
-    const item = items[idx];
-    // remove from shopping list
-    items.splice(idx, 1);
-    saveStore(items);
-    // add to fridge (mock fridge service will create a new fridge entry)
-    try {
-      await addFridgeItemApi({ name: item.name, qty: item.qty ?? 1, expiration: item.expiration ?? null });
-    } catch (e) {
-      console.warn('Failed to add to fridge (mock)', e);
-    }
-    return { ok: true, moved: item };
-  }
+export async function markBought(itemId) {
   try {
-    const res = await api.post(`/shopping/${id}/bought`);
-    return res.data;
+    const items = await fetchShoppingItems();
+    const found = items.find(i => String(i.id) === String(itemId));
+    if (!found) throw new Error('Item not found');
+    
+    // Move to fridge (using same shape as fridge items)
+    const fridgeItem = {
+      name: found.name,
+      quantity: found.qty,
+      expirationDate: null
+    };
+    
+    // Add to fridge first, then remove from shopping
+    await api.post('/inventory', fridgeItem);
+    await removeShoppingItem(itemId);
+    
+    return true;
   } catch (e) {
     console.error('markBought error', e);
+    throw e;
+  }
+}
+
+// For adding recipe ingredients - FIXED: add items one by one
+export async function addRecipeItemsToShopping(items) {
+  try {
+    const results = [];
+    for (const item of items) {
+      const result = await addShoppingItem(item);
+      results.push(result);
+    }
+    return results;
+  } catch (e) {
+    console.error('addRecipeItemsToShopping error', e);
     throw e;
   }
 }

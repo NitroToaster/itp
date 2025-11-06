@@ -56,6 +56,10 @@ export default function Sidebar({ collapsed, onToggle, onNavigate, onDataLoaded 
             <div className="sidebar-button-icon">🛒</div>
             <span className="sidebar-button-text">Shopping List</span>
           </button>
+          <button className="sidebar-button" onClick={() => onNavigate && onNavigate('recipes')}>
+            <div className="sidebar-button-icon">📖</div>
+            <span className="sidebar-button-text">Recipes</span>
+          </button>
         </div>
 
         <div className="sidebar-group">

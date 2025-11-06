@@ -3,6 +3,7 @@ import './assets/styles/App.css';
 import FridgePage from './features/fridge/Fridge';
 import ShoppingListPage from './features/shopping/ShoppingList';
 import AppShell from './components/layout/AppShell';
+import RecipesPage from './features/recipes/RecipesPage';
 
 // fridge API
 import { fetchItems, addItemApi, removeItemApi, updateItemApi } from './services/api/FridgeService';
@@ -132,6 +133,11 @@ function App() {
           reload={loadShoppingItems}
         />
       )}
+      {view === 'recipes' && (
+      <RecipesPage
+        onAddToShopping={handleAddShopping}
+      />
+    )}
     </AppShell>
   );
 }

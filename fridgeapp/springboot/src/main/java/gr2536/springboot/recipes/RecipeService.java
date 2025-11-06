@@ -31,7 +31,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class RecipeService {
   private static final Logger log = Logger.getLogger(RecipeService.class.getName());
-  private static final MealDbThrottle MEAL_DB_THROTTLE = new MealDbThrottle(Duration.ofMillis(175));
+  private static final MealDbThrottle MEAL_DB_THROTTLE = new MealDbThrottle(Duration.ofMillis(50));
   private static final int VERIFICATION_LIMIT = 30;
 
   private final MealDbClient client;
@@ -131,21 +131,32 @@ public class RecipeService {
       int offset
   ) {
     List<String> chips = normalizeChips(ingredients);
+    List<Item> fridgeItemsSnapshot = fridge.listItems();
 
     if (log.isLoggable(Level.FINE)) {
       log.fine(String.format("FILTER: Received request with %d ingredient chips.", chips.size()));
     }
 
+    // Track if ingredients were originally provided (before any auto-derivation)
+    boolean hadOriginalIngredients = !chips.isEmpty();
+    
     // If no chips were provided, derive candidates from the fridge contents.
-    // Use union semantics here to avoid over-restricting the result set.
+    // BUT: Skip auto-derivation if filtering by category/area/name only (meta filters)
+    // This allows fast category filtering without ingredient matching
+    boolean hasMetaFilters = (category != null && !category.isBlank())
+                          || (area != null && !area.isBlank())
+                          || (nameQuery != null && !nameQuery.isBlank());
+    
     boolean derivedFromFridge = false;
-    boolean hasFridgeItems = !fridge.listItems().isEmpty();
+    boolean hasFridgeItems = !fridgeItemsSnapshot.isEmpty();
     if (log.isLoggable(Level.FINE)) {
       log.fine(String.format("FILTER: Server fridge has items? %s", hasFridgeItems));
     }
 
-    if (chips.isEmpty() && hasFridgeItems) {
-      List<String> fridgeChips = fridge.listItems().stream()
+    // Only auto-derive from fridge if no meta filters are specified
+    // (when filtering by category/area/name, we want fast filtering without ingredient matching)
+    if (chips.isEmpty() && hasFridgeItems && !hasMetaFilters) {
+      List<String> fridgeChips = fridgeItemsSnapshot.stream()
           .map(Item::getName)
           .filter(n -> n != null && !n.isBlank())
           .distinct()
@@ -163,7 +174,9 @@ public class RecipeService {
     Set<String> candidateIds;
     Map<String, RecipeCard> lightLookup = Map.of();
     if (chips.isEmpty()) {
-      candidateIds = seedCandidatesFromMeta(category, area, nameQuery);
+      SeedCandidates seeded = seedCandidatesFromMeta(category, area, nameQuery);
+      candidateIds = seeded.ids();
+      lightLookup = seeded.cards();
     } else {
       boolean useAll = derivedFromFridge ? false : matchAll; // union when derived from fridge
       SeedCandidates seeded = seedCandidatesFromChips(chips, useAll);
@@ -171,16 +184,16 @@ public class RecipeService {
       lightLookup = seeded.cards();
 
       // If meta filters (category/area/name) are specified, intersect with those candidates
-      boolean hasMetaFilters = (category != null && !category.isBlank())
-                             || (area != null && !area.isBlank())
-                             || (nameQuery != null && !nameQuery.isBlank());
-
       if (hasMetaFilters && !candidateIds.isEmpty()) {
-        Set<String> metaCandidates = seedCandidatesFromMeta(category, area, nameQuery);
-        if (!metaCandidates.isEmpty()) {
+        SeedCandidates metaSeeded = seedCandidatesFromMeta(category, area, nameQuery);
+        if (!metaSeeded.ids().isEmpty()) {
           candidateIds = candidateIds.stream()
-              .filter(metaCandidates::contains)
+              .filter(metaSeeded.ids()::contains)
               .collect(Collectors.toCollection(LinkedHashSet::new));
+          // Merge lookup maps, preferring existing entries
+          Map<String, RecipeCard> mergedLookup = new LinkedHashMap<>(lightLookup);
+          metaSeeded.cards().forEach((id, card) -> mergedLookup.putIfAbsent(id, card));
+          lightLookup = mergedLookup;
         }
       }
     }
@@ -188,34 +201,101 @@ public class RecipeService {
       return List.of();
     }
 
-    // Limit the number of candidates to verify to avoid excessive API calls
-    Set<String> limitedCandidates = candidateIds.stream()
-        .limit(VERIFICATION_LIMIT)
-        .collect(Collectors.toCollection(LinkedHashSet::new));
+    int safeOffset = Math.max(0, offset);
+    int requestedLimit = limit > 0 ? limit : Integer.MAX_VALUE;
 
     // When fridge is empty OR we're filtering by meta only, don't enforce minMatched
     int effectiveMinMatched = (!hasFridgeItems || chips.isEmpty()) ? 0 : Math.max(0, minMatched);
     var params = new FilterParams(chips, effectiveMinMatched, category, area, nameQuery);
 
-    // Verify all candidates first, then sort and paginate.
-    List<RecipeCardMatch> verified = new ArrayList<>();
-    for (String id : limitedCandidates) {
-      try {
-        var match = verifyAndScore(id, lightLookup, params);
-        if (match != null) {
-          verified.add(match);
-        }
-      } catch (Exception e) {
-        log.log(Level.WARNING, String.format("Failed to verify recipe '%s': %s", id, e.getMessage()));
-        log.log(Level.FINE, String.format("Verification failure for recipe %s", id), e);
-      }
+    // Optimization: Skip expensive verification when filtering by category/area/name only
+    // If no ingredients were originally provided AND we have meta filters, skip verification
+    // This allows fast category filtering without ingredient matching
+    boolean skipVerification = !hadOriginalIngredients && hasMetaFilters;
+    
+    if (log.isLoggable(Level.FINE)) {
+      log.fine(String.format("FILTER: skipVerification=%s (hadOriginalIngredients=%s, hasMetaFilters=%s)", 
+          skipVerification, hadOriginalIngredients, hasMetaFilters));
     }
-    verified.sort((a, b) -> Integer.compare(b.matched(), a.matched()));
 
-    int pageSize = (limit <= 0) ? verified.size() : Math.max(0, limit);
+    List<String> orderedCandidates = new ArrayList<>(candidateIds);
+    List<RecipeCardMatch> verified;
+    if (skipVerification) {
+      // Fast path: Fetch recipe details only until we've satisfied the requested page.
+      verified = new ArrayList<>();
+      int satisfiedBeforeOffset = 0;
+      for (String id : orderedCandidates) {
+        if (requestedLimit != Integer.MAX_VALUE && verified.size() >= requestedLimit) {
+          break;
+        }
+        RecipeCard card = lightLookup.get(id);
+        int ingredientCount = 0;
+        
+        // Fetch recipe detail to get ingredient count
+        try {
+          MEAL_DB_THROTTLE.acquire();
+          var detail = client.lookupById(id);
+          if (detail == null || detail.meals() == null || detail.meals().isEmpty()) continue;
+          var dto = MealDbMapper.toDetail(detail.meals().get(0));
+          if (!passesConstraints(dto, params.category(), params.area(), params.nameQuery())) continue;
+          
+          // Get ingredient count from the recipe
+          ingredientCount = dto.ingredients() != null ? dto.ingredients().size() : 0;
+          
+          // Update card if we don't have it or need to refresh
+          if (card == null) {
+            card = new RecipeCard(id, dto.title(), dto.image());
+          }
+        } catch (Exception e) {
+          log.log(Level.FINE, String.format("Failed to fetch recipe '%s' in fast path: %s", id, e.getMessage()));
+          // If fetch fails but we have a card, use it with 0 count
+          if (card == null) continue;
+        }
+        
+        if (satisfiedBeforeOffset < safeOffset) {
+          satisfiedBeforeOffset++;
+          continue;
+        }
+
+        // No ingredient matching needed, so matched=0, but we have the total count
+        verified.add(new RecipeCardMatch(card.id(), card.title(), card.image(), 0, ingredientCount));
+      }
+      return verified;
+    } else {
+      // Full verification path: Limit candidates and verify each one
+      long desiredCount = requestedLimit == Integer.MAX_VALUE
+          ? Long.MAX_VALUE
+          : (long) safeOffset + requestedLimit;
+      int maxToCheck;
+      if (desiredCount == Long.MAX_VALUE) {
+        maxToCheck = orderedCandidates.size();
+      } else {
+        maxToCheck = (int) Math.min(orderedCandidates.size(), Math.max(VERIFICATION_LIMIT, desiredCount));
+      }
+
+      Set<String> limitedCandidates = orderedCandidates.stream()
+          .limit(maxToCheck)
+          .collect(Collectors.toCollection(LinkedHashSet::new));
+
+      verified = new ArrayList<>();
+      for (String id : limitedCandidates) {
+        try {
+          var match = verifyAndScore(id, lightLookup, params, fridgeItemsSnapshot);
+          if (match != null) {
+            verified.add(match);
+          }
+        } catch (Exception e) {
+          log.log(Level.WARNING, String.format("Failed to verify recipe '%s': %s", id, e.getMessage()));
+          log.log(Level.FINE, String.format("Verification failure for recipe %s", id), e);
+        }
+      }
+      verified.sort((a, b) -> Integer.compare(b.matched(), a.matched()));
+    }
+
+    long limitToApply = (requestedLimit == Integer.MAX_VALUE) ? Long.MAX_VALUE : requestedLimit;
     return verified.stream()
-        .skip(Math.max(0, offset))
-        .limit(pageSize)
+        .skip(safeOffset)
+        .limit(limitToApply)
         .toList();
   }
 
@@ -288,14 +368,17 @@ public class RecipeService {
     return new SeedCandidates(ids, lookup);
   }
 
-  private Set<String> seedCandidatesFromMeta(String category, String area, String nameQuery) {
+  private SeedCandidates seedCandidatesFromMeta(String category, String area, String nameQuery) {
     LinkedHashSet<String> byName = new LinkedHashSet<>();
+    Map<String, RecipeCard> nameLookup = new LinkedHashMap<>();
     if (nameQuery != null && !nameQuery.isBlank()) {
       try {
         MEAL_DB_THROTTLE.acquire();
         var resp = client.searchByName(nameQuery);
-        for (RecipeCard card : MealDbMapper.toCards(resp)) {
+        List<RecipeCard> cards = MealDbMapper.toCards(resp);
+        for (RecipeCard card : cards) {
           byName.add(card.id());
+          nameLookup.put(card.id(), card);
         }
       } catch (Exception e) {
         log.log(Level.WARNING, String.format("Failed to seed recipes by name query '%s': %s", nameQuery, e.getMessage()));
@@ -304,12 +387,15 @@ public class RecipeService {
     }
 
     LinkedHashSet<String> byCat = new LinkedHashSet<>();
+    Map<String, RecipeCard> catLookup = new LinkedHashMap<>();
     if (category != null && !category.isBlank()) {
       try {
         MEAL_DB_THROTTLE.acquire();
         var resp = client.filterByCategory(category);
-        for (RecipeCard card : MealDbMapper.toCards(resp)) {
+        List<RecipeCard> cards = MealDbMapper.toCards(resp);
+        for (RecipeCard card : cards) {
           byCat.add(card.id());
+          catLookup.put(card.id(), card);
         }
       } catch (Exception e) {
         log.log(Level.WARNING, String.format("Failed to seed recipes by category '%s': %s", category, e.getMessage()));
@@ -318,12 +404,15 @@ public class RecipeService {
     }
 
     LinkedHashSet<String> byArea = new LinkedHashSet<>();
+    Map<String, RecipeCard> areaLookup = new LinkedHashMap<>();
     if (area != null && !area.isBlank()) {
       try {
         MEAL_DB_THROTTLE.acquire();
         var resp = client.filterByArea(area);
-        for (RecipeCard card : MealDbMapper.toCards(resp)) {
+        List<RecipeCard> cards = MealDbMapper.toCards(resp);
+        for (RecipeCard card : cards) {
           byArea.add(card.id());
+          areaLookup.put(card.id(), card);
         }
       } catch (Exception e) {
         log.log(Level.WARNING, String.format("Failed to seed recipes by area '%s': %s", area, e.getMessage()));
@@ -335,16 +424,42 @@ public class RecipeService {
     if (!byName.isEmpty()) nonEmpty.add(byName);
     if (!byCat.isEmpty()) nonEmpty.add(byCat);
     if (!byArea.isEmpty()) nonEmpty.add(byArea);
-    if (nonEmpty.isEmpty()) return Set.of();
+    if (nonEmpty.isEmpty()) return new SeedCandidates(Set.of(), Map.of());
 
     LinkedHashSet<String> ids = new LinkedHashSet<>(nonEmpty.get(0));
     for (int i = 1; i < nonEmpty.size(); i++) {
       ids.retainAll(nonEmpty.get(i));
     }
-    return ids;
+    
+    // Build lookup map from intersection - prefer cards from first non-empty set
+    Map<String, RecipeCard> lookup = new LinkedHashMap<>();
+    if (!byName.isEmpty()) {
+      for (String id : ids) {
+        if (nameLookup.containsKey(id)) {
+          lookup.put(id, nameLookup.get(id));
+        }
+      }
+    }
+    if (!byCat.isEmpty()) {
+      for (String id : ids) {
+        lookup.putIfAbsent(id, catLookup.get(id));
+      }
+    }
+    if (!byArea.isEmpty()) {
+      for (String id : ids) {
+        lookup.putIfAbsent(id, areaLookup.get(id));
+      }
+    }
+    
+    return new SeedCandidates(ids, lookup);
   }
 
-  private RecipeCardMatch verifyAndScore(String id, Map<String, RecipeCard> light, FilterParams params) {
+  private RecipeCardMatch verifyAndScore(
+      String id,
+      Map<String, RecipeCard> light,
+      FilterParams params,
+      List<Item> fridgeItems
+  ) {
     MEAL_DB_THROTTLE.acquire();
     var detail = client.lookupById(id);
     if (detail == null || detail.meals() == null || detail.meals().isEmpty()) return null;
@@ -353,7 +468,6 @@ public class RecipeService {
 
     // Build core recipe, compute match vs current fridge items
     var coreRecipe = RecipeDomainMapper.toCoreRecipe(dto);
-    List<Item> fridgeItems = fridge.listItems();
     
     // If fridge is empty, treat all recipes as having 0 matched ingredients
     int matched = 0;
