@@ -136,30 +136,23 @@ export default function RecipesPage({ onAddToShopping }) {
 };
 
 //for handling favorites tab
-  const handleShowFavorites = async () => {
-  if (showFavoritesOnly) {
-    setShowFavoritesOnly(false);
-    setSelectedCategory('all'); 
-    loadRecipes();
-  } else {
-    setShowFavoritesOnly(true);
-    setSelectedCategory('favorites');
-    setSearchQuery('');
-    
+  const loadFavorites = async () => {
     setLoading(true);
     try {
       const favoriteIds = getFavorites();
       const favoriteRecipes = [];
-      
+
       for (const id of favoriteIds) {
         try {
           const recipe = await fetchRecipeById(id);
-          favoriteRecipes.push(recipe);
+          if (recipe) {
+            favoriteRecipes.push(recipe);
+          }
         } catch (e) {
           console.error(`Failed to load recipe ${id}:`, e);
         }
       }
-      
+
       setRecipes(favoriteRecipes);
       setHasMore(false);
       setPage(1);
@@ -168,8 +161,20 @@ export default function RecipesPage({ onAddToShopping }) {
     } finally {
       setLoading(false);
     }
-  }
-};
+  };
+
+  const handleShowFavorites = async () => {
+    if (showFavoritesOnly) {
+      setShowFavoritesOnly(false);
+      setSelectedCategory('all');
+      loadRecipes();
+    } else {
+      setShowFavoritesOnly(true);
+      setSelectedCategory('favorites');
+      setSearchQuery('');
+      await loadFavorites();
+    }
+  };
 
   const handleRecipeClick = async (recipe) => {
     setSelectedRecipe(recipe);
@@ -194,7 +199,7 @@ export default function RecipesPage({ onAddToShopping }) {
     toggleFavorite(recipeId);
     
     if (showFavoritesOnly) {
-      handleShowFavorites();
+      await loadFavorites();
     } else {
       setRecipes([...recipes]);
     }
