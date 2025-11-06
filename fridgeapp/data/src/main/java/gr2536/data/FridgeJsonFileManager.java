@@ -28,12 +28,14 @@ public class FridgeJsonFileManager implements FridgeFileManager {
         // Opprett parent directories hvis de ikke eksisterer
         File parent = file.getParentFile();
         if (parent != null && !parent.exists()) {
-            parent.mkdirs();
+            if (!parent.mkdirs() && !parent.exists()) {
+                throw new IOException("Could not create directory structure for " + parent.getAbsolutePath());
+            }
         }
         
         mapper.writeValue(file, fridge);
     } catch (IOException e) {
-        throw new RuntimeException("Failed to save fridge data to " + filename, e);
+        throw new IllegalStateException("Failed to save fridge data to " + filename, e);
     }
 }
 
@@ -49,7 +51,7 @@ public class FridgeJsonFileManager implements FridgeFileManager {
         try {
             return mapper.readValue(file, Fridge.class);
         } catch (IOException e) {
-            throw new RuntimeException("Failed to read fridge data from " + filename, e);
+            throw new IllegalStateException("Failed to read fridge data from " + filename, e);
         }
     }
 }

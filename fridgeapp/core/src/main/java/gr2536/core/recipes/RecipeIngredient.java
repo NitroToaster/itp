@@ -1,5 +1,6 @@
 package gr2536.core.recipes;
 
+import java.util.Locale;
 import java.util.Objects;
 
 public final class RecipeIngredient {
@@ -48,6 +49,6 @@ public final class RecipeIngredient {
 
     @Override
     public int hashCode() {
-        return Objects.hash(name.toLowerCase(), quantity);
+        return Objects.hash(name.toLowerCase(Locale.ROOT), quantity);
     }
 }
