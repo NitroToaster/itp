@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<FindBugsFilter>
+  <!-- Suppress EI_EXPOSE_REP2 warnings for Spring dependency injection patterns -->
+  <!-- These are false positives: Spring-managed beans are singletons and storing references is the standard pattern -->
+  
+  <!-- FridgeController - Spring injects FridgeService singleton -->
+  <Match>
+    <Class name="gr2536.springboot.fridge.FridgeController"/>
+    <Bug pattern="EI_EXPOSE_REP2"/>
+  </Match>
+  
+  <!-- FridgeService - Spring injects managed Fridge instance -->
+  <Match>
+    <Class name="gr2536.springboot.fridge.FridgeService"/>
+    <Bug pattern="EI_EXPOSE_REP2"/>
+  </Match>
+  
+  <!-- RecipeService - Spring injects managed collaborators -->
+  <Match>
+    <Class name="gr2536.springboot.recipes.RecipeService"/>
+    <Bug pattern="EI_EXPOSE_REP2"/>
+  </Match>
+  
+  <!-- MealDbClient - RestTemplate is a Spring-managed singleton -->
+  <Match>
+    <Class name="gr2536.springboot.recipes.mealDb.MealDbClient"/>
+    <Bug pattern="EI_EXPOSE_REP2"/>
+  </Match>
+  
+  <!-- ShoppingListController - Spring injects ShoppingListService singleton -->
+  <Match>
+    <Class name="gr2536.springboot.shoppingList.ShoppingListController"/>
+    <Bug pattern="EI_EXPOSE_REP2"/>
+  </Match>
+  
+  <!-- ShoppingListService - Spring injects managed beans -->
+  <Match>
+    <Class name="gr2536.springboot.shoppingList.ShoppingListService"/>
+    <Bug pattern="EI_EXPOSE_REP2"/>
+  </Match>
+</FindBugsFilter>
+

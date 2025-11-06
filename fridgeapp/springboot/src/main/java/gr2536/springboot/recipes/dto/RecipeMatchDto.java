@@ -8,4 +8,8 @@ public record RecipeMatchDto(
         int matchedIngredients,
         int totalIngredients,
         List<IngredientDto> missing
-) {}
+) {
+  public RecipeMatchDto {
+    missing = missing == null ? List.of() : List.copyOf(missing);
+  }
+}

@@ -47,8 +47,10 @@ public class RecipeService {
   public RecipeDetails byId(String id) {
     MEAL_DB_THROTTLE.acquire();
     var resp = client.lookupById(id);
-    if (resp == null || resp.meals() == null || resp.meals().isEmpty()) return null;
-    return MealDbMapper.toDetail(resp.meals().get(0));
+    if (resp == null) return null;
+    var meals = resp.meals();
+    if (meals.isEmpty()) return null;
+    return MealDbMapper.toDetail(meals.get(0));
   }
 
   public List<RecipeCard> filterByIngredients(List<String> ingredients, boolean matchAll) {
@@ -235,8 +237,10 @@ public class RecipeService {
         try {
           MEAL_DB_THROTTLE.acquire();
           var detail = client.lookupById(id);
-          if (detail == null || detail.meals() == null || detail.meals().isEmpty()) continue;
-          var dto = MealDbMapper.toDetail(detail.meals().get(0));
+          if (detail == null) continue;
+          var meals = detail.meals();
+          if (meals.isEmpty()) continue;
+          var dto = MealDbMapper.toDetail(meals.get(0));
           if (!passesConstraints(dto, params.category(), params.area(), params.nameQuery())) continue;
           
           // Get ingredient count from the recipe
@@ -462,8 +466,10 @@ public class RecipeService {
   ) {
     MEAL_DB_THROTTLE.acquire();
     var detail = client.lookupById(id);
-    if (detail == null || detail.meals() == null || detail.meals().isEmpty()) return null;
-    var dto = MealDbMapper.toDetail(detail.meals().get(0));
+    if (detail == null) return null;
+    var meals = detail.meals();
+    if (meals.isEmpty()) return null;
+    var dto = MealDbMapper.toDetail(meals.get(0));
     if (!passesConstraints(dto, params.category(), params.area(), params.nameQuery())) return null;
 
     // Build core recipe, compute match vs current fridge items
