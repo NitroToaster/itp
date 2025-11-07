@@ -1,94 +1,51 @@
-import * as DataService from "./DataService";
+import DataService from "./DataService";
 
 describe("DataService", () => {
-  let mockFileReader;
-
   beforeEach(() => {
+    localStorage.clear();
     jest.clearAllMocks();
-    
-    // Mock FileReader
-    mockFileReader = {
-      readAsText: jest.fn(),
-      onload: null,
-      onerror: null,
-      result: null
-    };
-    
-    global.FileReader = jest.fn(() => mockFileReader);
   });
 
-  describe("importData", () => {
-    it("should import valid JSON data", async () => {
-      const mockFile = new File(
-        [JSON.stringify({ fridgeItems: [], shoppingItems: [] })],
-        "data.json",
-        { type: "application/json" }
-      );
-
-      const promise = DataService.importData(mockFile);
-      
-      // Simulate FileReader onload
-      mockFileReader.result = JSON.stringify({ 
-        fridgeItems: [{ id: 1, name: "Milk" }], 
-        shoppingItems: [{ id: 1, name: "Bread" }] 
-      });
-      mockFileReader.onload({ target: mockFileReader });
-
-      const result = await promise;
-
-      expect(result).toEqual({
-        fridgeItems: [{ id: 1, name: "Milk" }],
-        shoppingItems: [{ id: 1, name: "Bread" }]
-      });
+  describe("saveData", () => {
+    it("should save data to localStorage", () => {
+      const testData = { test: "data" };
+      DataService.saveData("testKey", testData);
+      const saved = localStorage.getItem("testKey");
+      expect(saved).toBe(JSON.stringify(testData));
     });
 
-    it("should handle invalid JSON", async () => {
-      const mockFile = new File(["invalid json"], "data.json", { type: "application/json" });
-
-      const promise = DataService.importData(mockFile);
-      
-      mockFileReader.result = "invalid json";
-      mockFileReader.onload({ target: mockFileReader });
-
-      await expect(promise).rejects.toThrow();
-    });
-
-    it("should handle file read error", async () => {
-      const mockFile = new File(["data"], "data.json", { type: "application/json" });
-
-      const promise = DataService.importData(mockFile);
-      
-      const error = new Error("Read failed");
-      mockFileReader.onerror(error);
-
-      await expect(promise).rejects.toThrow("Read failed");
+    it("should handle empty data", () => {
+      DataService.saveData("testKey", null);
+      const saved = localStorage.getItem("testKey");
+      expect(saved).toBe("null");
     });
   });
 
-  describe("exportData", () => {
-    it("should export data as JSON", () => {
-      const data = {
-        fridgeItems: [{ id: 1, name: "Milk" }],
-        shoppingItems: [{ id: 1, name: "Bread" }]
-      };
+  describe("loadData", () => {
+    it("should load data from localStorage", () => {
+      const testData = { test: "data" };
+      localStorage.setItem("testKey", JSON.stringify(testData));
+      const loaded = DataService.loadData("testKey");
+      expect(loaded).toEqual(testData);
+    });
 
-      // Mock URL and document methods
-      global.URL.createObjectURL = jest.fn(() => "blob:mock-url");
-      global.URL.revokeObjectURL = jest.fn();
-      const mockClick = jest.fn();
-      const mockLink = {
-        href: "",
-        download: "",
-        click: mockClick,
-        remove: jest.fn()
-      };
-      jest.spyOn(document, "createElement").mockReturnValue(mockLink);
-      jest.spyOn(document.body, "appendChild").mockImplementation(() => {});
+    it("should return null for non-existent key", () => {
+      const loaded = DataService.loadData("nonExistentKey");
+      expect(loaded).toBeNull();
+    });
 
-      DataService.exportData(data);
+    it("should handle invalid JSON", () => {
+      localStorage.setItem("testKey", "invalid json");
+      const loaded = DataService.loadData("testKey");
+      expect(loaded).toBeNull();
+    });
+  });
 
-      expect(document.createElement).toHaveBeenCalledWith("a");
-      expect(mockClick).toHaveBeenCalled();
+  describe("clearData", () => {
+    it("should clear specific key from localStorage", () => {
+      localStorage.setItem("testKey", "testValue");
+      DataService.clearData("testKey");
+      expect(localStorage.getItem("testKey")).toBeNull();
     });
   });
 });

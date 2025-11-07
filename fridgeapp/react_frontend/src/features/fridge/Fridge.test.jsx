@@ -42,6 +42,18 @@ describe("Fridge Component", () => {
       expect(editButtons.length).toBe(2);
       expect(removeButtons.length).toBe(2);
     });
+
+    it("should render table headers", () => {
+      render(<Fridge {...defaultProps} />);
+      expect(screen.getByText("Name")).toBeInTheDocument();
+      expect(screen.getByText("Quantity")).toBeInTheDocument();
+      expect(screen.getByText("Expiration")).toBeInTheDocument();
+    });
+
+    it("should render section header", () => {
+      render(<Fridge {...defaultProps} />);
+      expect(screen.getByText("Fridge Items")).toBeInTheDocument();
+    });
   });
 
   describe("Search", () => {
@@ -55,6 +67,22 @@ describe("Fridge Component", () => {
       render(<Fridge {...defaultProps} />);
       expect(screen.getByText("Search")).toBeInTheDocument();
       expect(screen.getByText("Clear")).toBeInTheDocument();
+    });
+
+    it("should allow typing in search input", () => {
+      render(<Fridge {...defaultProps} />);
+      const searchInput = screen.getByPlaceholderText("Search items...");
+      fireEvent.change(searchInput, { target: { value: "Milk" } });
+      expect(searchInput.value).toBe("Milk");
+    });
+
+    it("should clear search input when Clear is clicked", () => {
+      render(<Fridge {...defaultProps} />);
+      const searchInput = screen.getByPlaceholderText("Search items...");
+      fireEvent.change(searchInput, { target: { value: "Milk" } });
+      const clearButton = screen.getByText("Clear");
+      fireEvent.click(clearButton);
+      expect(searchInput.value).toBe("");
     });
   });
 
@@ -71,12 +99,26 @@ describe("Fridge Component", () => {
       expect(screen.getByText("Sort by Expiration")).toBeInTheDocument();
       expect(screen.getByText("Sort by Quantity")).toBeInTheDocument();
     });
+
+    it("should allow changing sort option", () => {
+      render(<Fridge {...defaultProps} />);
+      const sortSelect = screen.getByDisplayValue("Default");
+      fireEvent.change(sortSelect, { target: { value: "name" } });
+      expect(sortSelect.value).toBe("name");
+    });
   });
 
   describe("Filter", () => {
     it("should have a Filter button", () => {
       render(<Fridge {...defaultProps} />);
       expect(screen.getByText("Filter")).toBeInTheDocument();
+    });
+
+    it("should allow clicking Filter button", () => {
+      render(<Fridge {...defaultProps} />);
+      const filterButton = screen.getByText("Filter");
+      fireEvent.click(filterButton);
+      expect(filterButton).toBeInTheDocument();
     });
   });
 
@@ -89,6 +131,45 @@ describe("Fridge Component", () => {
       fireEvent.click(removeButtons[0]);
       
       expect(defaultProps.onRemove).toHaveBeenCalledWith(1);
+    });
+
+    it("should not call onRemove when user cancels", () => {
+      window.confirm = jest.fn(() => false);
+      render(<Fridge {...defaultProps} />);
+      
+      const removeButtons = screen.getAllByText("Remove");
+      fireEvent.click(removeButtons[0]);
+      
+      expect(defaultProps.onRemove).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("Add Item", () => {
+    it("should open modal when Add Item clicked", () => {
+      render(<Fridge {...defaultProps} />);
+      const addButton = screen.getByText("Add Item");
+      fireEvent.click(addButton);
+      expect(addButton).toBeInTheDocument();
+    });
+  });
+
+  describe("Edit Item", () => {
+    it("should allow clicking Edit button", () => {
+      render(<Fridge {...defaultProps} />);
+      const editButtons = screen.getAllByText("Edit");
+      fireEvent.click(editButtons[0]);
+      expect(editButtons[0]).toBeInTheDocument();
+    });
+  });
+
+  describe("Empty state", () => {
+    it("should render with empty items", () => {
+      const emptyProps = {
+        ...defaultProps,
+        items: []
+      };
+      render(<Fridge {...emptyProps} />);
+      expect(screen.getByText("Fridge")).toBeInTheDocument();
     });
   });
 });

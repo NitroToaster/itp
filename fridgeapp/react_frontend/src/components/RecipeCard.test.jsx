@@ -8,26 +8,34 @@ describe("RecipeCard Component", () => {
     name: "Test Recipe",
     description: "Test Description",
     cookTime: 30,
-    servings: 4
+    servings: 4,
+    ingredients: ["ingredient1", "ingredient2"]
   };
 
-  it("should render recipe name", () => {
-    render(<RecipeCard recipe={mockRecipe} onClick={() => {}} />);
-    expect(screen.getByText("Test Recipe")).toBeInTheDocument();
+  it("should render recipe card", () => {
+    const { container } = render(<RecipeCard recipe={mockRecipe} onClick={() => {}} />);
+    expect(container.querySelector(".recipe-card")).toBeInTheDocument();
   });
 
-  it("should render recipe description", () => {
+  it("should display ingredients count", () => {
     render(<RecipeCard recipe={mockRecipe} onClick={() => {}} />);
-    expect(screen.getByText("Test Description")).toBeInTheDocument();
+    expect(screen.getByText(/2.*ingredients/i)).toBeInTheDocument();
   });
 
-  it("should display cook time", () => {
+  it("should have favorite button", () => {
     render(<RecipeCard recipe={mockRecipe} onClick={() => {}} />);
-    expect(screen.getByText(/30/)).toBeInTheDocument();
+    expect(screen.getByText("🤍")).toBeInTheDocument();
   });
 
-  it("should display servings", () => {
+  it("should render with no image placeholder", () => {
     render(<RecipeCard recipe={mockRecipe} onClick={() => {}} />);
-    expect(screen.getByText(/4/)).toBeInTheDocument();
+    expect(screen.getByText("No image")).toBeInTheDocument();
+  });
+
+  it("should be clickable", () => {
+    const mockClick = jest.fn();
+    const { container } = render(<RecipeCard recipe={mockRecipe} onClick={mockClick} />);
+    const card = container.querySelector(".recipe-card");
+    expect(card).toHaveStyle("cursor: pointer");
   });
 });

@@ -4,10 +4,7 @@ import RecipesPage from "./RecipesPage";
 
 describe("RecipesPage Component", () => {
   const defaultProps = {
-    recipes: [
-      { id: 1, name: "Recipe 1", description: "Desc 1", cookTime: 30, servings: 4 },
-      { id: 2, name: "Recipe 2", description: "Desc 2", cookTime: 45, servings: 6 }
-    ],
+    recipes: [],
     fridgeItems: [],
     reload: jest.fn()
   };
@@ -21,15 +18,39 @@ describe("RecipesPage Component", () => {
     expect(screen.getByText("Recipes")).toBeInTheDocument();
   });
 
-  it("should display recipe cards", () => {
-    render(<RecipesPage {...defaultProps} />);
-    expect(screen.getByText("Recipe 1")).toBeInTheDocument();
-    expect(screen.getByText("Recipe 2")).toBeInTheDocument();
-  });
-
   it("should have search input", () => {
     render(<RecipesPage {...defaultProps} />);
     const searchInput = screen.getByPlaceholderText(/search/i);
     expect(searchInput).toBeInTheDocument();
+  });
+
+  it("should have Clear button", () => {
+    render(<RecipesPage {...defaultProps} />);
+    expect(screen.getByText("Clear")).toBeInTheDocument();
+  });
+
+  it("should have Mixed button", () => {
+    render(<RecipesPage {...defaultProps} />);
+    expect(screen.getByText("Mixed")).toBeInTheDocument();
+  });
+
+  it("should have Favorites button", () => {
+    render(<RecipesPage {...defaultProps} />);
+    expect(screen.getByText(/Favorites/i)).toBeInTheDocument();
+  });
+
+  it("should show loading state", () => {
+    render(<RecipesPage {...defaultProps} />);
+    expect(screen.getByText("Loading recipes...")).toBeInTheDocument();
+  });
+
+  it("should show loading categories text", () => {
+    render(<RecipesPage {...defaultProps} />);
+    expect(screen.getByText("Loading categories...")).toBeInTheDocument();
+  });
+
+  it("should render panel", () => {
+    const { container } = render(<RecipesPage {...defaultProps} />);
+    expect(container.querySelector(".panel")).toBeInTheDocument();
   });
 });

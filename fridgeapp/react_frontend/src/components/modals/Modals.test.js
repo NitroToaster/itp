@@ -40,6 +40,21 @@ describe("Modal Components", () => {
       const inputs = screen.getAllByRole("textbox");
       expect(inputs.length).toBeGreaterThan(0);
     });
+
+    it("should have Item Name label", () => {
+      render(<AddItemModal onClose={mockOnClose} onAdd={mockOnAdd} />);
+      expect(screen.getByText("Item Name")).toBeInTheDocument();
+    });
+
+    it("should have Quantity label", () => {
+      render(<AddItemModal onClose={mockOnClose} onAdd={mockOnAdd} />);
+      expect(screen.getByText("Quantity")).toBeInTheDocument();
+    });
+
+    it("should have Expiration Date label", () => {
+      render(<AddItemModal onClose={mockOnClose} onAdd={mockOnAdd} />);
+      expect(screen.getByText("Expiration Date")).toBeInTheDocument();
+    });
   });
 
   describe("AddShoppingItemModal", () => {
@@ -52,7 +67,7 @@ describe("Modal Components", () => {
 
     it("should render with title", () => {
       render(<AddShoppingItemModal onClose={mockOnClose} onAdd={mockOnAdd} />);
-      expect(screen.getByText("Add Item to Shopping List")).toBeInTheDocument();
+      expect(screen.getByText("Add Shopping Item")).toBeInTheDocument();
     });
 
     it("should have Cancel button", () => {
@@ -70,6 +85,16 @@ describe("Modal Components", () => {
       const cancelButton = screen.getByText("Cancel");
       fireEvent.click(cancelButton);
       expect(mockOnClose).toHaveBeenCalled();
+    });
+
+    it("should have Item Name label", () => {
+      render(<AddShoppingItemModal onClose={mockOnClose} onAdd={mockOnAdd} />);
+      expect(screen.getByText("Item Name")).toBeInTheDocument();
+    });
+
+    it("should have Quantity label", () => {
+      render(<AddShoppingItemModal onClose={mockOnClose} onAdd={mockOnAdd} />);
+      expect(screen.getByText("Quantity")).toBeInTheDocument();
     });
   });
 
@@ -131,6 +156,28 @@ describe("Modal Components", () => {
         />
       );
       expect(screen.getByDisplayValue("Test Item")).toBeInTheDocument();
+    });
+
+    it("should have Item Name label", () => {
+      render(
+        <EditItemModal 
+          item={mockItem} 
+          onClose={mockOnClose} 
+          onUpdate={mockOnUpdate} 
+        />
+      );
+      expect(screen.getByText("Item Name")).toBeInTheDocument();
+    });
+
+    it("should have Quantity label", () => {
+      render(
+        <EditItemModal 
+          item={mockItem} 
+          onClose={mockOnClose} 
+          onUpdate={mockOnUpdate} 
+        />
+      );
+      expect(screen.getByText("Quantity")).toBeInTheDocument();
     });
   });
 });
