@@ -11,4 +11,8 @@ public record RecipeDetails(
     List<IngredientDto> ingredients,
     String instructions,
     String youtubeUrl
-) {}
+) {
+  public RecipeDetails {
+    ingredients = ingredients == null ? List.of() : List.copyOf(ingredients);
+  }
+}

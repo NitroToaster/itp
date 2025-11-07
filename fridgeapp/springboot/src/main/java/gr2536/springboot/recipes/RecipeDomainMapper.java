@@ -23,7 +23,9 @@ final class RecipeDomainMapper {
         Map<String, RecipeIngredient> unique = new LinkedHashMap<>();
         if (dto.ingredients() != null) {
             for (IngredientDto ing : dto.ingredients()) {
-                if (ing == null || ing.name() == null || ing.name().isBlank()) continue;
+                if (ing == null || ing.name() == null || ing.name().isBlank()) {
+                  continue;
+                }
 
                 String trimmedName = ing.name().trim();
                 int qty = Math.max(1, parseQuantity(ing.measure()));
@@ -41,10 +43,16 @@ final class RecipeDomainMapper {
     }
 
     private static int parseQuantity(String measure) {
-        if (measure == null) return 1;
+        if (measure == null) {
+          return 1;
+        }
         Matcher m = LEADING_INT.matcher(measure);
         if (m.find()) {
-            try { return Integer.parseInt(m.group(1)); } catch (NumberFormatException ignore) { return 1; }
+            try {
+              return Integer.parseInt(m.group(1));
+            } catch (NumberFormatException ignore) {
+              return 1;
+            }
         }
         return 1;
     }

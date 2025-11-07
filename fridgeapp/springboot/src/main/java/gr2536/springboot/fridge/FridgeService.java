@@ -14,7 +14,7 @@ public class FridgeService {
   private final Fridge fridge;
 
   public List<Item> list() {
-    return fridge.listItems();
+    return List.copyOf(fridge.listItems());
   }
 
   public Item add(CreateItemRequest req) {
