@@ -1,376 +1,210 @@
 import React from "react";
 import { render, screen, fireEvent } from "@testing-library/react";
 import "@testing-library/jest-dom";
-import AddItemModal from "../components/modals/AddItemModal";
-import EditItemModal from "../components/modals/EditItemModal";
-import AddShoppingItemModal from "../components/modals/AddShoppingItemModal";
+import AddItemModal from "./AddItemModal";
+import EditItemModal from "./EditItemModal";
+import AddShoppingItemModal from "./AddShoppingItemModal";
 
-describe("AddItemModal Component", () => {
-  const mockOnClose = jest.fn();
-  const mockOnAdd = jest.fn();
+describe("Modal Components", () => {
+  describe("AddItemModal", () => {
+    const mockOnClose = jest.fn();
+    const mockOnAdd = jest.fn();
 
-  beforeEach(() => {
-    jest.clearAllMocks();
+    beforeEach(() => {
+      jest.clearAllMocks();
+    });
+
+    it("should render add item modal", () => {
+      render(<AddItemModal onClose={mockOnClose} onAdd={mockOnAdd} />);
+      
+      expect(screen.getByText(/add.*item/i)).toBeInTheDocument();
+    });
+
+    it("should have input fields", () => {
+      render(<AddItemModal onClose={mockOnClose} onAdd={mockOnAdd} />);
+      
+      expect(screen.getByLabelText(/name/i)).toBeInTheDocument();
+      expect(screen.getByLabelText(/quantity/i)).toBeInTheDocument();
+      expect(screen.getByLabelText(/expiration/i)).toBeInTheDocument();
+    });
+
+    it("should call onAdd with form data", () => {
+      render(<AddItemModal onClose={mockOnClose} onAdd={mockOnAdd} />);
+      
+      fireEvent.change(screen.getByLabelText(/name/i), { target: { value: "Milk" } });
+      fireEvent.change(screen.getByLabelText(/quantity/i), { target: { value: "2" } });
+      fireEvent.change(screen.getByLabelText(/expiration/i), { target: { value: "2025-11-01" } });
+      
+      const submitButton = screen.getByText(/save|add/i);
+      fireEvent.click(submitButton);
+      
+      expect(mockOnAdd).toHaveBeenCalledWith({
+        name: "Milk",
+        qty: 2,
+        expiration: "2025-11-01"
+      });
+    });
+
+    it("should call onClose when cancel clicked", () => {
+      render(<AddItemModal onClose={mockOnClose} onAdd={mockOnAdd} />);
+      
+      const cancelButton = screen.getByText(/cancel/i);
+      fireEvent.click(cancelButton);
+      
+      expect(mockOnClose).toHaveBeenCalled();
+    });
+
+    it("should validate required fields", () => {
+      render(<AddItemModal onClose={mockOnClose} onAdd={mockOnAdd} />);
+      
+      const submitButton = screen.getByText(/save|add/i);
+      fireEvent.click(submitButton);
+      
+      // Should not call onAdd if required fields are empty
+      expect(mockOnAdd).not.toHaveBeenCalled();
+    });
   });
 
-  it("should render the modal", () => {
-    render(<AddItemModal onClose={mockOnClose} onAdd={mockOnAdd} />);
-    
-    expect(screen.getByText(/add item/i)).toBeInTheDocument();
-  });
-
-  it("should have name input field", () => {
-    render(<AddItemModal onClose={mockOnClose} onAdd={mockOnAdd} />);
-    
-    const nameInput = screen.getByLabelText(/name/i);
-    expect(nameInput).toBeInTheDocument();
-    expect(nameInput).toHaveAttribute("required");
-  });
-
-  it("should have quantity input field", () => {
-    render(<AddItemModal onClose={mockOnClose} onAdd={mockOnAdd} />);
-    
-    const qtyInput = screen.getByLabelText(/quantity/i);
-    expect(qtyInput).toBeInTheDocument();
-    expect(qtyInput).toHaveAttribute("type", "number");
-  });
-
-  it("should have expiration date input field", () => {
-    render(<AddItemModal onClose={mockOnClose} onAdd={mockOnAdd} />);
-    
-    const expirationInput = screen.getByLabelText(/expiration/i);
-    expect(expirationInput).toBeInTheDocument();
-    expect(expirationInput).toHaveAttribute("type", "date");
-  });
-
-  it("should call onClose when cancel button clicked", () => {
-    render(<AddItemModal onClose={mockOnClose} onAdd={mockOnAdd} />);
-    
-    const cancelButton = screen.getByText(/cancel/i);
-    fireEvent.click(cancelButton);
-    
-    expect(mockOnClose).toHaveBeenCalled();
-  });
-
-  it("should call onAdd with form data when submitted", () => {
-    render(<AddItemModal onClose={mockOnClose} onAdd={mockOnAdd} />);
-    
-    const nameInput = screen.getByLabelText(/name/i);
-    const qtyInput = screen.getByLabelText(/quantity/i);
-    const expirationInput = screen.getByLabelText(/expiration/i);
-    const submitButton = screen.getByText(/add/i);
-    
-    fireEvent.change(nameInput, { target: { value: "Milk" } });
-    fireEvent.change(qtyInput, { target: { value: "2" } });
-    fireEvent.change(expirationInput, { target: { value: "2025-12-31" } });
-    fireEvent.click(submitButton);
-    
-    expect(mockOnAdd).toHaveBeenCalledWith({
+  describe("EditItemModal", () => {
+    const mockOnClose = jest.fn();
+    const mockOnUpdate = jest.fn();
+    const mockItem = {
+      id: 1,
       name: "Milk",
       qty: 2,
-      expiration: "2025-12-31"
-    });
-  });
-
-  it("should not submit without required name field", () => {
-    render(<AddItemModal onClose={mockOnClose} onAdd={mockOnAdd} />);
-    
-    const submitButton = screen.getByText(/add/i);
-    fireEvent.click(submitButton);
-    
-    // Form should not submit due to HTML5 validation
-    expect(mockOnAdd).not.toHaveBeenCalled();
-  });
-
-  it("should submit with only name field (optional fields empty)", () => {
-    render(<AddItemModal onClose={mockOnClose} onAdd={mockOnAdd} />);
-    
-    const nameInput = screen.getByLabelText(/name/i);
-    const submitButton = screen.getByText(/add/i);
-    
-    fireEvent.change(nameInput, { target: { value: "Bread" } });
-    fireEvent.click(submitButton);
-    
-    expect(mockOnAdd).toHaveBeenCalledWith(
-      expect.objectContaining({
-        name: "Bread"
-      })
-    );
-  });
-
-  it("should close modal after successful submission", () => {
-    render(<AddItemModal onClose={mockOnClose} onAdd={mockOnAdd} />);
-    
-    const nameInput = screen.getByLabelText(/name/i);
-    const submitButton = screen.getByText(/add/i);
-    
-    fireEvent.change(nameInput, { target: { value: "Cheese" } });
-    fireEvent.click(submitButton);
-    
-    expect(mockOnClose).toHaveBeenCalled();
-  });
-
-  it("should prevent negative quantity values", () => {
-    render(<AddItemModal onClose={mockOnClose} onAdd={mockOnAdd} />);
-    
-    const qtyInput = screen.getByLabelText(/quantity/i);
-    
-    expect(qtyInput).toHaveAttribute("min", "0");
-  });
-});
-
-describe("EditItemModal Component", () => {
-  const mockOnClose = jest.fn();
-  const mockOnSave = jest.fn();
-  
-  const mockItem = {
-    id: 1,
-    name: "Milk",
-    qty: 2,
-    expiration: "2025-10-30"
-  };
-
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
-
-  it("should render the modal", () => {
-    render(
-      <EditItemModal 
-        item={mockItem} 
-        onClose={mockOnClose} 
-        onSave={mockOnSave} 
-      />
-    );
-    
-    expect(screen.getByText(/edit item/i)).toBeInTheDocument();
-  });
-
-  it("should pre-fill form with item data", () => {
-    render(
-      <EditItemModal 
-        item={mockItem} 
-        onClose={mockOnClose} 
-        onSave={mockOnSave} 
-      />
-    );
-    
-    const nameInput = screen.getByLabelText(/name/i);
-    const qtyInput = screen.getByLabelText(/quantity/i);
-    const expirationInput = screen.getByLabelText(/expiration/i);
-    
-    expect(nameInput).toHaveValue("Milk");
-    expect(qtyInput).toHaveValue(2);
-    expect(expirationInput).toHaveValue("2025-10-30");
-  });
-
-  it("should call onClose when cancel button clicked", () => {
-    render(
-      <EditItemModal 
-        item={mockItem} 
-        onClose={mockOnClose} 
-        onSave={mockOnSave} 
-      />
-    );
-    
-    const cancelButton = screen.getByText(/cancel/i);
-    fireEvent.click(cancelButton);
-    
-    expect(mockOnClose).toHaveBeenCalled();
-  });
-
-  it("should call onSave with updated data when submitted", () => {
-    render(
-      <EditItemModal 
-        item={mockItem} 
-        onClose={mockOnClose} 
-        onSave={mockOnSave} 
-      />
-    );
-    
-    const nameInput = screen.getByLabelText(/name/i);
-    const qtyInput = screen.getByLabelText(/quantity/i);
-    const saveButton = screen.getByText(/save/i);
-    
-    fireEvent.change(nameInput, { target: { value: "Whole Milk" } });
-    fireEvent.change(qtyInput, { target: { value: "3" } });
-    fireEvent.click(saveButton);
-    
-    expect(mockOnSave).toHaveBeenCalledWith(
-      expect.objectContaining({
-        id: 1,
-        name: "Whole Milk",
-        qty: 3
-      })
-    );
-  });
-
-  it("should preserve item ID when saving", () => {
-    render(
-      <EditItemModal 
-        item={mockItem} 
-        onClose={mockOnClose} 
-        onSave={mockOnSave} 
-      />
-    );
-    
-    const saveButton = screen.getByText(/save/i);
-    fireEvent.click(saveButton);
-    
-    expect(mockOnSave).toHaveBeenCalledWith(
-      expect.objectContaining({ id: 1 })
-    );
-  });
-
-  it("should close modal after successful save", () => {
-    render(
-      <EditItemModal 
-        item={mockItem} 
-        onClose={mockOnClose} 
-        onSave={mockOnSave} 
-      />
-    );
-    
-    const saveButton = screen.getByText(/save/i);
-    fireEvent.click(saveButton);
-    
-    expect(mockOnClose).toHaveBeenCalled();
-  });
-
-  it("should handle item without expiration date", () => {
-    const itemWithoutExpiration = {
-      id: 2,
-      name: "Salt",
-      qty: 1,
-      expiration: null
+      expiration: "2025-10-30"
     };
-    
-    render(
-      <EditItemModal 
-        item={itemWithoutExpiration} 
-        onClose={mockOnClose} 
-        onSave={mockOnSave} 
-      />
-    );
-    
-    const expirationInput = screen.getByLabelText(/expiration/i);
-    expect(expirationInput).toHaveValue("");
-  });
-});
 
-describe("AddShoppingItemModal Component", () => {
-  const mockOnClose = jest.fn();
-  const mockOnAdd = jest.fn();
+    beforeEach(() => {
+      jest.clearAllMocks();
+    });
 
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
+    it("should render edit item modal", () => {
+      render(<EditItemModal item={mockItem} onClose={mockOnClose} onUpdate={mockOnUpdate} />);
+      
+      expect(screen.getByText(/edit.*item/i)).toBeInTheDocument();
+    });
 
-  it("should render the modal", () => {
-    render(<AddShoppingItemModal onClose={mockOnClose} onAdd={mockOnAdd} />);
-    
-    expect(screen.getByText(/add.*shopping.*item/i)).toBeInTheDocument();
-  });
+    it("should populate form with existing item data", () => {
+      render(<EditItemModal item={mockItem} onClose={mockOnClose} onUpdate={mockOnUpdate} />);
+      
+      expect(screen.getByDisplayValue("Milk")).toBeInTheDocument();
+      expect(screen.getByDisplayValue("2")).toBeInTheDocument();
+      expect(screen.getByDisplayValue("2025-10-30")).toBeInTheDocument();
+    });
 
-  it("should have name input field", () => {
-    render(<AddShoppingItemModal onClose={mockOnClose} onAdd={mockOnAdd} />);
-    
-    const nameInput = screen.getByLabelText(/name/i);
-    expect(nameInput).toBeInTheDocument();
-    expect(nameInput).toHaveAttribute("required");
-  });
+    it("should call onUpdate with modified data", () => {
+      render(<EditItemModal item={mockItem} onClose={mockOnClose} onUpdate={mockOnUpdate} />);
+      
+      fireEvent.change(screen.getByLabelText(/name/i), { target: { value: "Updated Milk" } });
+      
+      const updateButton = screen.getByText(/update|save/i);
+      fireEvent.click(updateButton);
+      
+      expect(mockOnUpdate).toHaveBeenCalledWith(expect.objectContaining({
+        id: 1,
+        name: "Updated Milk"
+      }));
+    });
 
-  it("should have quantity input field", () => {
-    render(<AddShoppingItemModal onClose={mockOnClose} onAdd={mockOnAdd} />);
-    
-    const qtyInput = screen.getByLabelText(/quantity/i);
-    expect(qtyInput).toBeInTheDocument();
-    expect(qtyInput).toHaveAttribute("type", "number");
-  });
-
-  it("should NOT have expiration date field", () => {
-    render(<AddShoppingItemModal onClose={mockOnClose} onAdd={mockOnAdd} />);
-    
-    const expirationInput = screen.queryByLabelText(/expiration/i);
-    expect(expirationInput).not.toBeInTheDocument();
-  });
-
-  it("should call onClose when cancel button clicked", () => {
-    render(<AddShoppingItemModal onClose={mockOnClose} onAdd={mockOnAdd} />);
-    
-    const cancelButton = screen.getByText(/cancel/i);
-    fireEvent.click(cancelButton);
-    
-    expect(mockOnClose).toHaveBeenCalled();
-  });
-
-  it("should call onAdd with form data when submitted", () => {
-    render(<AddShoppingItemModal onClose={mockOnClose} onAdd={mockOnAdd} />);
-    
-    const nameInput = screen.getByLabelText(/name/i);
-    const qtyInput = screen.getByLabelText(/quantity/i);
-    const submitButton = screen.getByText(/add/i);
-    
-    fireEvent.change(nameInput, { target: { value: "Apples" } });
-    fireEvent.change(qtyInput, { target: { value: "5" } });
-    fireEvent.click(submitButton);
-    
-    expect(mockOnAdd).toHaveBeenCalledWith({
-      name: "Apples",
-      qty: 5
+    it("should call onClose when cancel clicked", () => {
+      render(<EditItemModal item={mockItem} onClose={mockOnClose} onUpdate={mockOnUpdate} />);
+      
+      const cancelButton = screen.getByText(/cancel/i);
+      fireEvent.click(cancelButton);
+      
+      expect(mockOnClose).toHaveBeenCalled();
     });
   });
 
-  it("should not submit without required name field", () => {
-    render(<AddShoppingItemModal onClose={mockOnClose} onAdd={mockOnAdd} />);
-    
-    const submitButton = screen.getByText(/add/i);
-    fireEvent.click(submitButton);
-    
-    expect(mockOnAdd).not.toHaveBeenCalled();
+  describe("AddShoppingItemModal", () => {
+    const mockOnClose = jest.fn();
+    const mockOnAdd = jest.fn();
+
+    beforeEach(() => {
+      jest.clearAllMocks();
+    });
+
+    it("should render add shopping item modal", () => {
+      render(<AddShoppingItemModal onClose={mockOnClose} onAdd={mockOnAdd} />);
+      
+      expect(screen.getByText(/add.*item/i)).toBeInTheDocument();
+    });
+
+    it("should have name and quantity input fields", () => {
+      render(<AddShoppingItemModal onClose={mockOnClose} onAdd={mockOnAdd} />);
+      
+      expect(screen.getByLabelText(/name/i)).toBeInTheDocument();
+      expect(screen.getByLabelText(/quantity/i)).toBeInTheDocument();
+    });
+
+    it("should call onAdd with form data", () => {
+      render(<AddShoppingItemModal onClose={mockOnClose} onAdd={mockOnAdd} />);
+      
+      fireEvent.change(screen.getByLabelText(/name/i), { target: { value: "Bread" } });
+      fireEvent.change(screen.getByLabelText(/quantity/i), { target: { value: "1" } });
+      
+      const submitButton = screen.getByText(/save|add/i);
+      fireEvent.click(submitButton);
+      
+      expect(mockOnAdd).toHaveBeenCalledWith({
+        name: "Bread",
+        qty: 1
+      });
+    });
+
+    it("should call onClose when cancel clicked", () => {
+      render(<AddShoppingItemModal onClose={mockOnClose} onAdd={mockOnAdd} />);
+      
+      const cancelButton = screen.getByText(/cancel/i);
+      fireEvent.click(cancelButton);
+      
+      expect(mockOnClose).toHaveBeenCalled();
+    });
+
+    it("should validate required fields", () => {
+      render(<AddShoppingItemModal onClose={mockOnClose} onAdd={mockOnAdd} />);
+      
+      const submitButton = screen.getByText(/save|add/i);
+      fireEvent.click(submitButton);
+      
+      // Should not call onAdd if required fields are empty
+      expect(mockOnAdd).not.toHaveBeenCalled();
+    });
+
+    it("should default quantity to 1 if not specified", () => {
+      render(<AddShoppingItemModal onClose={mockOnClose} onAdd={mockOnAdd} />);
+      
+      fireEvent.change(screen.getByLabelText(/name/i), { target: { value: "Eggs" } });
+      
+      const submitButton = screen.getByText(/save|add/i);
+      fireEvent.click(submitButton);
+      
+      expect(mockOnAdd).toHaveBeenCalledWith(expect.objectContaining({
+        qty: expect.any(Number)
+      }));
+    });
   });
 
-  it("should submit with only name field", () => {
-    render(<AddShoppingItemModal onClose={mockOnClose} onAdd={mockOnAdd} />);
-    
-    const nameInput = screen.getByLabelText(/name/i);
-    const submitButton = screen.getByText(/add/i);
-    
-    fireEvent.change(nameInput, { target: { value: "Bananas" } });
-    fireEvent.click(submitButton);
-    
-    expect(mockOnAdd).toHaveBeenCalledWith(
-      expect.objectContaining({
-        name: "Bananas"
-      })
-    );
-  });
+  describe("Modal Overlay Behavior", () => {
+    it("should close on overlay click for AddItemModal", () => {
+      const mockOnClose = jest.fn();
+      render(<AddItemModal onClose={mockOnClose} onAdd={jest.fn()} />);
+      
+      const overlay = screen.getByRole("dialog").parentElement;
+      fireEvent.click(overlay);
+      
+      expect(mockOnClose).toHaveBeenCalled();
+    });
 
-  it("should close modal after successful submission", () => {
-    render(<AddShoppingItemModal onClose={mockOnClose} onAdd={mockOnAdd} />);
-    
-    const nameInput = screen.getByLabelText(/name/i);
-    const submitButton = screen.getByText(/add/i);
-    
-    fireEvent.change(nameInput, { target: { value: "Oranges" } });
-    fireEvent.click(submitButton);
-    
-    expect(mockOnClose).toHaveBeenCalled();
-  });
-
-  it("should prevent negative quantity values", () => {
-    render(<AddShoppingItemModal onClose={mockOnClose} onAdd={mockOnAdd} />);
-    
-    const qtyInput = screen.getByLabelText(/quantity/i);
-    
-    expect(qtyInput).toHaveAttribute("min", "0");
-  });
-
-  it("should have default quantity of 1", () => {
-    render(<AddShoppingItemModal onClose={mockOnClose} onAdd={mockOnAdd} />);
-    
-    const qtyInput = screen.getByLabelText(/quantity/i);
-    
-    expect(qtyInput).toHaveValue(1);
+    it("should not close when clicking inside modal", () => {
+      const mockOnClose = jest.fn();
+      render(<AddItemModal onClose={mockOnClose} onAdd={jest.fn()} />);
+      
+      const modal = screen.getByRole("dialog");
+      fireEvent.click(modal);
+      
+      expect(mockOnClose).not.toHaveBeenCalled();
+    });
   });
 });

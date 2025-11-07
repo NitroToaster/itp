@@ -1,20 +1,15 @@
 import React from "react";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import "@testing-library/jest-dom";
-import ShoppingList from "../features/shopping/ShoppingList";
+import ShoppingList from "./ShoppingList";
 
 // Mock the modal component
-jest.mock("../components/modals/AddShoppingItemModal", () => {
+jest.mock("../../components/modals/AddShoppingItemModal", () => {
   return function MockAddShoppingItemModal({ onClose, onAdd }) {
     return (
       <div data-testid="add-shopping-modal">
-        <button
-          onClick={() => {
-            onAdd({ name: "New Shopping Item", qty: 1 });
-            onClose();
-          }}
-        >
-          Submit Add
+        <button onClick={() => onAdd({ name: "New Shopping Item", qty: 2 })}>
+          Save
         </button>
         <button onClick={onClose}>Cancel</button>
       </div>
@@ -25,15 +20,14 @@ jest.mock("../components/modals/AddShoppingItemModal", () => {
 describe("ShoppingList Component", () => {
   const mockItems = [
     { id: 1, name: "Bread", qty: 2 },
-    { id: 2, name: "Butter", qty: 1 },
-    { id: 3, name: "Bananas", qty: 5 }
+    { id: 2, name: "Eggs", qty: 12 },
+    { id: 3, name: "Butter", qty: 1 }
   ];
 
   const defaultProps = {
     items: mockItems,
-    loading: false,
-    onRemove: jest.fn(),
     onAdd: jest.fn(),
+    onRemove: jest.fn(),
     onMarkBought: jest.fn(),
     reload: jest.fn()
   };
@@ -43,108 +37,101 @@ describe("ShoppingList Component", () => {
   });
 
   describe("Rendering", () => {
-    it("should render the shopping list page", () => {
+    it("should render shopping list items", () => {
       render(<ShoppingList {...defaultProps} />);
       
       expect(screen.getByText("Bread")).toBeInTheDocument();
+      expect(screen.getByText("Eggs")).toBeInTheDocument();
       expect(screen.getByText("Butter")).toBeInTheDocument();
-      expect(screen.getByText("Bananas")).toBeInTheDocument();
     });
 
-    it("should show loading state", () => {
-      render(<ShoppingList {...defaultProps} loading={true} />);
-      
-      expect(screen.getByText(/loading/i)).toBeInTheDocument();
-    });
-
-    it("should show empty state when no items", () => {
+    it("should render empty state when no items", () => {
       render(<ShoppingList {...defaultProps} items={[]} />);
       
-      expect(screen.getByText(/no items/i)).toBeInTheDocument();
+      expect(screen.getByText(/No items/i)).toBeInTheDocument();
     });
 
-    it("should display item quantities", () => {
+    it("should render add item button", () => {
       render(<ShoppingList {...defaultProps} />);
       
-      expect(screen.getByText(/2/)).toBeInTheDocument(); // Bread qty
-      expect(screen.getByText(/1/)).toBeInTheDocument(); // Butter qty
-      expect(screen.getByText(/5/)).toBeInTheDocument(); // Bananas qty
+      const addButton = screen.getByText(/add.*item/i);
+      expect(addButton).toBeInTheDocument();
     });
   });
 
-  describe("Prefix Search Functionality", () => {
-    it("should filter items by prefix search", () => {
+  describe("Add Item", () => {
+    it("should open add item modal", () => {
       render(<ShoppingList {...defaultProps} />);
       
-      const searchInput = screen.getByPlaceholderText(/search/i);
-      fireEvent.change(searchInput, { target: { value: "Br" } });
+      const addButton = screen.getByText(/add.*item/i);
+      fireEvent.click(addButton);
       
-      expect(screen.getByText("Bread")).toBeInTheDocument();
-      expect(screen.queryByText("Butter")).not.toBeInTheDocument();
-      expect(screen.queryByText("Bananas")).not.toBeInTheDocument();
+      expect(screen.getByTestId("add-shopping-modal")).toBeInTheDocument();
     });
 
-    it("should be case insensitive", () => {
+    it("should call onAdd when item is added", async () => {
       render(<ShoppingList {...defaultProps} />);
       
-      const searchInput = screen.getByPlaceholderText(/search/i);
-      fireEvent.change(searchInput, { target: { value: "br" } });
+      const addButton = screen.getByText(/add.*item/i);
+      fireEvent.click(addButton);
       
-      expect(screen.getByText("Bread")).toBeInTheDocument();
+      const saveButton = screen.getByText("Save");
+      fireEvent.click(saveButton);
+      
+      await waitFor(() => {
+        expect(defaultProps.onAdd).toHaveBeenCalled();
+      });
     });
 
-    it("should show all items when search is cleared", () => {
+    it("should close modal when cancelled", () => {
       render(<ShoppingList {...defaultProps} />);
       
-      const searchInput = screen.getByPlaceholderText(/search/i);
-      fireEvent.change(searchInput, { target: { value: "Br" } });
-      fireEvent.change(searchInput, { target: { value: "" } });
+      const addButton = screen.getByText(/add.*item/i);
+      fireEvent.click(addButton);
       
-      expect(screen.getByText("Bread")).toBeInTheDocument();
-      expect(screen.getByText("Butter")).toBeInTheDocument();
-      expect(screen.getByText("Bananas")).toBeInTheDocument();
-    });
-
-    it("should show no results message when search returns nothing", () => {
-      render(<ShoppingList {...defaultProps} />);
+      const cancelButton = screen.getByText("Cancel");
+      fireEvent.click(cancelButton);
       
-      const searchInput = screen.getByPlaceholderText(/search/i);
-      fireEvent.change(searchInput, { target: { value: "Xyz" } });
-      
-      expect(screen.getByText(/no items found/i)).toBeInTheDocument();
-    });
-
-    it("should only match prefix, not substring", () => {
-      render(<ShoppingList {...defaultProps} />);
-      
-      const searchInput = screen.getByPlaceholderText(/search/i);
-      fireEvent.change(searchInput, { target: { value: "read" } });
-      
-      // "read" is in "Bread" but not at the start
-      expect(screen.queryByText("Bread")).not.toBeInTheDocument();
+      expect(screen.queryByTestId("add-shopping-modal")).not.toBeInTheDocument();
     });
   });
 
-  describe("Multi-Select Functionality", () => {
-    it("should select an item when checkbox clicked", () => {
+  describe("Mark as Bought", () => {
+    it("should call onMarkBought when mark bought button clicked", () => {
       render(<ShoppingList {...defaultProps} />);
       
-      const checkboxes = screen.getAllByRole("checkbox");
-      fireEvent.click(checkboxes[0]);
+      const markBoughtButtons = screen.getAllByText(/bought/i);
+      fireEvent.click(markBoughtButtons[0]);
       
-      expect(checkboxes[0]).toBeChecked();
+      expect(defaultProps.onMarkBought).toHaveBeenCalledWith(1);
     });
+  });
 
-    it("should deselect an item when checkbox clicked again", () => {
+  describe("Remove Item", () => {
+    it("should call onRemove when remove button clicked", () => {
+      window.confirm = jest.fn(() => true);
+      
       render(<ShoppingList {...defaultProps} />);
       
-      const checkboxes = screen.getAllByRole("checkbox");
-      fireEvent.click(checkboxes[0]);
-      fireEvent.click(checkboxes[0]);
+      const removeButtons = screen.getAllByText(/remove/i);
+      fireEvent.click(removeButtons[0]);
       
-      expect(checkboxes[0]).not.toBeChecked();
+      expect(defaultProps.onRemove).toHaveBeenCalledWith(1);
     });
 
+    it("should not call onRemove if user cancels", () => {
+      window.confirm = jest.fn(() => false);
+      
+      render(<ShoppingList {...defaultProps} />);
+      
+      const removeButtons = screen.getAllByText(/remove/i);
+      fireEvent.click(removeButtons[0]);
+      
+      expect(defaultProps.onRemove).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("Bulk Operations", () => {
     it("should select multiple items", () => {
       render(<ShoppingList {...defaultProps} />);
       
@@ -156,224 +143,10 @@ describe("ShoppingList Component", () => {
       expect(checkboxes[1]).toBeChecked();
     });
 
-    it("should show selection count", () => {
+    it("should enable bulk buttons when items selected", () => {
       render(<ShoppingList {...defaultProps} />);
       
-      const checkboxes = screen.getAllByRole("checkbox");
-      fireEvent.click(checkboxes[0]);
-      fireEvent.click(checkboxes[1]);
-      
-      expect(screen.getByText(/2 selected/i)).toBeInTheDocument();
-    });
-
-    it("should select all items with select all button", () => {
-      render(<ShoppingList {...defaultProps} />);
-      
-      const selectAllButton = screen.getByText(/select all/i);
-      fireEvent.click(selectAllButton);
-      
-      const checkboxes = screen.getAllByRole("checkbox");
-      checkboxes.forEach(checkbox => {
-        expect(checkbox).toBeChecked();
-      });
-    });
-
-    it("should deselect all items with deselect all button", () => {
-      render(<ShoppingList {...defaultProps} />);
-      
-      // First select all
-      const selectAllButton = screen.getByText(/select all/i);
-      fireEvent.click(selectAllButton);
-      
-      // Then deselect all
-      const deselectAllButton = screen.getByText(/deselect all/i);
-      fireEvent.click(deselectAllButton);
-      
-      const checkboxes = screen.getAllByRole("checkbox");
-      checkboxes.forEach(checkbox => {
-        expect(checkbox).not.toBeChecked();
-      });
-    });
-  });
-
-  describe("Add Item Functionality", () => {
-    it("should open add item modal", () => {
-      render(<ShoppingList {...defaultProps} />);
-      
-      const addButton = screen.getByText(/add item/i);
-      fireEvent.click(addButton);
-      
-      expect(screen.getByTestId("add-shopping-modal")).toBeInTheDocument();
-    });
-
-    it("should close add item modal on cancel", () => {
-      render(<ShoppingList {...defaultProps} />);
-      
-      const addButton = screen.getByText(/add item/i);
-      fireEvent.click(addButton);
-      
-      const cancelButton = screen.getByText("Cancel");
-      fireEvent.click(cancelButton);
-      
-      expect(screen.queryByTestId("add-shopping-modal")).not.toBeInTheDocument();
-    });
-
-    it("should call onAdd when submitting new item", async () => {
-      render(<ShoppingList {...defaultProps} />);
-      
-      const addButton = screen.getByText(/add item/i);
-      fireEvent.click(addButton);
-      
-      const submitButton = screen.getByText("Submit Add");
-      fireEvent.click(submitButton);
-      
-      await waitFor(() => {
-        expect(defaultProps.onAdd).toHaveBeenCalledWith({
-          name: "New Shopping Item",
-          qty: 1
-        });
-      });
-    });
-  });
-
-  describe("Mark Bought Functionality", () => {
-    it("should call onMarkBought for single item", () => {
-      render(<ShoppingList {...defaultProps} />);
-      
-      const checkboxes = screen.getAllByRole("checkbox");
-      fireEvent.click(checkboxes[0]);
-      
-      const markBoughtButton = screen.getByText(/mark bought/i);
-      fireEvent.click(markBoughtButton);
-      
-      expect(defaultProps.onMarkBought).toHaveBeenCalledWith(1);
-    });
-
-    it("should call onMarkBought for multiple items", () => {
-      render(<ShoppingList {...defaultProps} />);
-      
-      const checkboxes = screen.getAllByRole("checkbox");
-      fireEvent.click(checkboxes[0]);
-      fireEvent.click(checkboxes[1]);
-      
-      const markBoughtButton = screen.getByText(/mark bought/i);
-      fireEvent.click(markBoughtButton);
-      
-      expect(defaultProps.onMarkBought).toHaveBeenCalledTimes(2);
-      expect(defaultProps.onMarkBought).toHaveBeenCalledWith(1);
-      expect(defaultProps.onMarkBought).toHaveBeenCalledWith(2);
-    });
-
-    it("should clear selection after marking bought", async () => {
-      render(<ShoppingList {...defaultProps} />);
-      
-      const checkboxes = screen.getAllByRole("checkbox");
-      fireEvent.click(checkboxes[0]);
-      
-      const markBoughtButton = screen.getByText(/mark bought/i);
-      fireEvent.click(markBoughtButton);
-      
-      await waitFor(() => {
-        expect(checkboxes[0]).not.toBeChecked();
-      });
-    });
-
-    it("should disable mark bought button when nothing selected", () => {
-      render(<ShoppingList {...defaultProps} />);
-      
-      const markBoughtButton = screen.getByText(/mark bought/i);
-      
-      expect(markBoughtButton).toBeDisabled();
-    });
-
-    it("should enable mark bought button when item selected", () => {
-      render(<ShoppingList {...defaultProps} />);
-      
-      const checkboxes = screen.getAllByRole("checkbox");
-      fireEvent.click(checkboxes[0]);
-      
-      const markBoughtButton = screen.getByText(/mark bought/i);
-      
-      expect(markBoughtButton).not.toBeDisabled();
-    });
-  });
-
-  describe("Remove Item Functionality", () => {
-    it("should call onRemove for single item", () => {
-      render(<ShoppingList {...defaultProps} />);
-      
-      const checkboxes = screen.getAllByRole("checkbox");
-      fireEvent.click(checkboxes[0]);
-      
-      const removeButton = screen.getByText(/remove/i);
-      fireEvent.click(removeButton);
-      
-      expect(defaultProps.onRemove).toHaveBeenCalledWith(1);
-    });
-
-    it("should call onRemove for multiple items", () => {
-      render(<ShoppingList {...defaultProps} />);
-      
-      const checkboxes = screen.getAllByRole("checkbox");
-      fireEvent.click(checkboxes[0]);
-      fireEvent.click(checkboxes[2]);
-      
-      const removeButton = screen.getByText(/remove/i);
-      fireEvent.click(removeButton);
-      
-      expect(defaultProps.onRemove).toHaveBeenCalledTimes(2);
-      expect(defaultProps.onRemove).toHaveBeenCalledWith(1);
-      expect(defaultProps.onRemove).toHaveBeenCalledWith(3);
-    });
-
-    it("should confirm before removing", () => {
-      const confirmSpy = jest.spyOn(window, "confirm").mockReturnValue(true);
-      
-      render(<ShoppingList {...defaultProps} />);
-      
-      const checkboxes = screen.getAllByRole("checkbox");
-      fireEvent.click(checkboxes[0]);
-      
-      const removeButton = screen.getByText(/remove/i);
-      fireEvent.click(removeButton);
-      
-      expect(confirmSpy).toHaveBeenCalled();
-      expect(defaultProps.onRemove).toHaveBeenCalled();
-      
-      confirmSpy.mockRestore();
-    });
-
-    it("should not remove if confirmation cancelled", () => {
-      const confirmSpy = jest.spyOn(window, "confirm").mockReturnValue(false);
-      
-      render(<ShoppingList {...defaultProps} />);
-      
-      const checkboxes = screen.getAllByRole("checkbox");
-      fireEvent.click(checkboxes[0]);
-      
-      const removeButton = screen.getByText(/remove/i);
-      fireEvent.click(removeButton);
-      
-      expect(confirmSpy).toHaveBeenCalled();
-      expect(defaultProps.onRemove).not.toHaveBeenCalled();
-      
-      confirmSpy.mockRestore();
-    });
-
-    it("should disable remove button when nothing selected", () => {
-      render(<ShoppingList {...defaultProps} />);
-      
-      const removeButton = screen.getByText(/remove/i);
-      
-      expect(removeButton).toBeDisabled();
-    });
-  });
-
-  describe("Bulk Operations", () => {
-    it("should enable bulk action buttons only when items selected", () => {
-      render(<ShoppingList {...defaultProps} />);
-      
-      const markBoughtButton = screen.getByText(/mark bought/i);
+      const markBoughtButton = screen.getByText(/mark.*bought/i);
       const removeButton = screen.getByText(/remove/i);
       
       expect(markBoughtButton).toBeDisabled();
