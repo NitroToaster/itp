@@ -1,26 +1,31 @@
 import React from "react";
 import { render, screen } from "@testing-library/react";
 import { BrowserRouter } from "react-router-dom";
-import App from "./App";
+import Sidebar from "./Sidebar";
 
-describe("App Component", () => {
-  it("should render without crashing", () => {
-    render(
+describe("Sidebar Component", () => {
+  const renderSidebar = () => {
+    return render(
       <BrowserRouter>
-        <App />
+        <Sidebar />
       </BrowserRouter>
     );
+  };
+
+  it("should render FridgeApp title", () => {
+    renderSidebar();
     expect(screen.getByText("FridgeApp")).toBeInTheDocument();
   });
 
-  it("should render sidebar", () => {
-    render(
-      <BrowserRouter>
-        <App />
-      </BrowserRouter>
-    );
+  it("should render navigation links", () => {
+    renderSidebar();
     expect(screen.getByText("Fridge")).toBeInTheDocument();
     expect(screen.getByText("Shopping List")).toBeInTheDocument();
     expect(screen.getByText("Recipes")).toBeInTheDocument();
+  });
+
+  it("should have nav element", () => {
+    const { container } = renderSidebar();
+    expect(container.querySelector("nav")).toBeInTheDocument();
   });
 });
