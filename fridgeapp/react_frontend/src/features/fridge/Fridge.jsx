@@ -234,7 +234,7 @@ export default function Fridge({
               {filteredItems.map((item) => {
                 const expirationStatus = getExpirationStatus(item.expiration);
                 return (
-                  <div key={item.id} className="table-row cols-3">
+                  <div key={item.id} className="table-row cols-3" role="article">
                     <div className="table-cell" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                       <span>{item.name}</span>
                       <span 
