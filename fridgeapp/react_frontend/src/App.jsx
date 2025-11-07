@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import './assets/styles/App.css';
-import FridgePage from './features/fridge/Fridge';
-import ShoppingListPage from './features/shopping/ShoppingList';
+import Fridge from './features/fridge/Fridge';
+import ShoppingList from './features/shopping/ShoppingList';
 import AppShell from './components/layout/AppShell';
 import RecipesPage from './features/recipes/RecipesPage';
 
@@ -112,7 +112,7 @@ function App() {
   return (
     <AppShell onNavigate={setView} onDataLoaded={handleDataLoaded}>
       {view === 'fridge' && (
-        <FridgePage
+        <Fridge
           items={fridgeItems}
           loading={fridgeLoading}
           onAdd={handleAdd}
@@ -124,7 +124,7 @@ function App() {
       )}
 
       {view === 'shopping' && (
-        <ShoppingListPage
+        <ShoppingList
           items={shoppingItems}
           loading={shoppingLoading}
           onRemove={handleRemoveShopping}

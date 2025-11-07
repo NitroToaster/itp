@@ -27,10 +27,10 @@ The **components** folder contains reusable UI components organized by purpose.
 The **features** folder contains feature-specific page components.
 
 #### Fridge
-- **FridgePage.jsx** - Main fridge interface with search, filter, and item management
+- **Fridge.jsx** - Main fridge interface with search, filter, and item management
 
 #### Shopping
-- **ShoppingListPage.jsx** - Shopping list interface with bulk operations
+- **ShoppingList.jsx** - Shopping list interface with bulk operations
 
 ### Services
 The **services** folder contains all data handling logic.

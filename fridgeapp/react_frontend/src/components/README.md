@@ -6,7 +6,7 @@
 App.jsx
 └── AppShell
     ├── Sidebar
-    └── FridgePage OR ShoppingListPage
+    └── Fridge OR ShoppingList
         ├── AddItemModal
         ├── EditItemModal
         └── AddShoppingItemModal
@@ -43,9 +43,9 @@ Navigation sidebar with route switching and data import.
 
 ## Page Components
 
-### FridgePage
+### Fridge
 
-**Location:** `src/features/fridge/FridgePage.jsx`
+**Location:** `src/features/fridge/Fridge.jsx`
 
 Main fridge management interface.
 
@@ -65,9 +65,9 @@ Main fridge management interface.
 
 ---
 
-### ShoppingListPage
+### ShoppingList
 
-**Location:** `src/features/shopping/ShoppingListPage.jsx`
+**Location:** `src/features/shopping/ShoppingList.jsx`
 
 Shopping list management interface.
 
